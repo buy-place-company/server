@@ -1,9 +1,12 @@
 from django.contrib.auth.hashers import make_password, check_password
 from django.db import models
 from .manager_user import UserManager
+from buy_place_server.settings_game import SettingsGame
 
 
 class User(models.Model):
+    # ========== user auth information ==========
+
     id = models.AutoField(primary_key=True)
 
     password = models.CharField(max_length=128)
@@ -37,3 +40,10 @@ class User(models.Model):
             self.set_password(raw_password)
             self.save(update_fields=["password"])
         return check_password(raw_password, self.password, setter)
+
+    # ========== user game information ==========
+
+    experience_count = models.BigIntegerField(default=0)
+    money_payed_amount = models.BigIntegerField(default=0)
+    money_amount = models.BigIntegerField(default=SettingsGame.START_MONEY_AMOUNT)
+    buildings_count = models.SmallIntegerField(default=0)
