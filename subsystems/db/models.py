@@ -1,2 +1,2 @@
 from .model_user import User
-from .model_building import Building
+from .model_venue import Venue

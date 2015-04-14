@@ -18,6 +18,9 @@ print(user)
 
 
 class ListVenues():
+    def __init__(self, id):
+        pass
+
     def update_list(self):
         lists = client.lists()
 
