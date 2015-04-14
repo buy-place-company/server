@@ -2,4 +2,6 @@ from django.db import models
 
 
 class Zone(models.Model):
-    pass
+    list_id = models.CharField(max_length=255)
+    lat = models.FloatField()
+    lng = models.FloatField()
