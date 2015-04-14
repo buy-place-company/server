@@ -58,3 +58,6 @@ target/
 
 # idea
 .idea/*
+
+#secret
+secret.py

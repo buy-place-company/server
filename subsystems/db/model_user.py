@@ -1,7 +1,8 @@
 from django.contrib.auth.hashers import make_password, check_password
 from django.db import models
+
 from .manager_user import UserManager
-from buy_place_server.settings_game import SettingsGame
+from conf.settings_game import SettingsGame
 
 
 class User(models.Model):
