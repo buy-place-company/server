@@ -93,9 +93,9 @@ DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql_psycopg2',
         'HOST': 'localhost',
-        'NAME': 'gindb',
+        'NAME': SettingsLocal.DB_NAME,
         'PORT': '6432',
-        'USER': 'ginuser',
+        'USER': SettingsLocal.DB_USER,
         'PASSWORD': SettingsLocal.DB_PASSWORD
     }
 }
