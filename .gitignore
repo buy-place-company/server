@@ -59,5 +59,8 @@ target/
 # idea
 .idea/*
 
-#secret
+# secret
 secret.py
+
+# local
+settings_local.py
