@@ -40,7 +40,8 @@ INSTALLED_APPS = (
 #    'django.contrib.messages',
     'django.contrib.staticfiles',
     'subsystems.db',
-    'subsystems.foursquare'
+    'subsystems.foursquare',
+    'subsystems.statistic'
 )
 
 MIDDLEWARE_CLASSES = (

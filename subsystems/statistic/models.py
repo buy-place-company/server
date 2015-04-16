@@ -1,0 +1,1 @@
+from .statistic_model import Statistic
