@@ -1,3 +1,4 @@
+import datetime
 from subsystems.db.model_zone import Zone
 
 
@@ -8,5 +9,6 @@ def init_db(x_step, y_step):
                 sw_lat=y,
                 sw_lng=x,
                 ne_lat=y+y_step,
-                ne_lng=x+x_step
+                ne_lng=x+x_step,
+                timestamp=datetime.datetime.now()
             )
