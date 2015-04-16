@@ -1,7 +1,9 @@
 #!/usr/bin/env python
 # -*- coding: UTF-8 -*-
 # (c) 2012 Mike Lewis
-import logging;
+import logging
+import io
+from subsystems.foursquare.utils.api import MultipartParam, multipart_encode
 
 log = logging.getLogger(__name__)
 
@@ -10,7 +12,6 @@ try:
 except ImportError:
     import json
 
-import io as StringIO
 import inspect
 import math
 import time
@@ -18,11 +19,8 @@ import urllib
 
 # 3rd party libraries that might not be present during initial install
 # but we need to import for the version #
-try:
-    import httplib2
-    import poster
-except ImportError:
-    pass
+
+import subsystems.foursquare.utils.httplib2 as httplib2
 
 # Default API version. Move this forward as the library is maintained and kept current
 API_VERSION = '20130707'
@@ -170,8 +168,10 @@ class Foursquare(object):
             self.oauth_token = access_token
             self.userless = not bool(access_token)  # Userless if no access_token
 
-        def GET(self, path, params={}, **kwargs):
+        def GET(self, path, params=None, **kwargs):
             """GET request that returns processed data"""
+            if params is not None:
+                params = {}
             # Short-circuit multi requests
             if kwargs.get('multi') is True:
                 return self.add_multi_request(path, params)
@@ -184,8 +184,10 @@ class Foursquare(object):
             )
             return self._request(url)
 
-        def add_multi_request(self, path, params={}):
+        def add_multi_request(self, path, params=None):
             """Add multi request to list and return the number of requests added"""
+            if params is not None:
+                params = {}
             url = '{path}?{params}'.format(
                 path=path,
                 params=urllib.parse.urlencode(params)
@@ -193,8 +195,10 @@ class Foursquare(object):
             self.multi_requests.append(url)
             return len(self.multi_requests)
 
-        def POST(self, path, params={}):
+        def POST(self, path, params=None):
             """POST request that returns processed data"""
+            if params is not None:
+                params = {}
             params = self._enrich_params(params)
             url = '{API_ENDPOINT}{path}'.format(
                 API_ENDPOINT=API_ENDPOINT,
@@ -596,11 +600,11 @@ class Foursquare(object):
 
         def add(self, photo_data, params):
             """https://developer.foursquare.com/docs/photos/add"""
-            params['photo'] = poster.encode.MultipartParam(
+            params['photo'] = MultipartParam(
                 name='photo',
                 filename='photo',
                 filetype='image/jpeg',
-                fileobj=StringIO.StringIO(photo_data)
+                fileobj=io.StringIO(photo_data)
             )
             return self.POST('add', params)
 
@@ -740,12 +744,13 @@ def _process_request_with_httplib2(url, headers={}, data=None):
     h = httplib2.Http(**HTTP_KWARGS)
     try:
         if data:
-            datagen, multipart_headers = poster.encode.multipart_encode(data)
+            datagen, multipart_headers = multipart_encode(data)
             data = ''.join(datagen)
             headers.update(multipart_headers)
             method = 'POST'
         else:
             method = 'GET'
+
         response, body = h.request(url, method, headers=headers, body=data)
         data = _json_to_data(body.decode("utf-8"))
         # Default case, Got proper response
@@ -761,7 +766,6 @@ def _process_request_with_httplib2(url, headers={}, data=None):
 def _json_to_data(s):
     """Convert a response string to data"""
     try:
-        print(s)
         return json.loads(s)
     except ValueError as e:
         errmsg = u'Invalid response: {0}'.format(e)
