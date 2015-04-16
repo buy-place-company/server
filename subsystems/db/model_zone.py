@@ -1,14 +1,21 @@
 # -*- coding: utf-8 -*-
+import datetime
 from django.db import models
 
 
 class Zone(models.Model):
     parent_id = models.IntegerField(null=True, blank=True)
     list_id = models.CharField(max_length=255)  # unique пока боком выходит
+    timestamp = models.TimeField(verbose_name="timestamp", editable=False)
     sw_lat = models.FloatField(default=0)  # Y axis
     sw_lng = models.FloatField(default=0)  # X axis
     ne_lat = models.FloatField(default=0)
     ne_lng = models.FloatField(default=0)
+
+    def save(self, *args, **kwargs):
+        ''' On save, update timestamps '''
+        self.timestamp = datetime.datetime.today()
+        return super(Zone, self).save(*args, **kwargs)
 
     def div(self, min_size):
         lat = abs(self.ne_lat - self.sw_lat)
