@@ -1,6 +1,7 @@
 import json
 from django.http import HttpResponse
 from subsystems.db.model_venue import Venue
+from subsystems.db.model_zone import Zone
 
 LONG = 10.1
 ERRORS = {
@@ -18,7 +19,9 @@ def objects_near(request):
     if lat and lng:
         return HttpResponse(json.dumps(ERRORS['2']))
 
-    list = [Venue.objects.filter(lat__gt=lat - LONG).filter(lat__lt=lat + LONG).filter(lat__gt=lng - LONG)
-                         .filter(lat__lt=lng + LONG).values()[:50]]
+    list_id = Zone.objects.filter(sw_lat__gt=lat).filter(ne_lat__lt=lat)\
+                          .filter(sw_lng__gt=lng).filter(ne_lng__lt=lng).get('list_id', None)
 
-    return HttpResponse(json.dumps({'status': 200, 'objects': list}, ensure_ascii=False))
+    objects = Venue.objects.filter(list_id=list_id).values()[:50]
+
+    return HttpResponse(json.dumps({'status': 200, 'objects': objects}, ensure_ascii=False))
