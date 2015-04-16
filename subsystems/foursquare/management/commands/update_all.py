@@ -1,9 +1,9 @@
-import datetime
 from django.core.management import BaseCommand
-from subsystems.api.views import ZoneView
-from subsystems.db.model_venue import Venue
-from subsystems.db.model_zone import Zone
-
+# from subsystems.api.views import ZoneView
+# from subsystems.db.model_venue import Venue
+# from subsystems.db.model_zone import Zone
+import os
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "conf.settings")
 
 from conf import secret
 from subsystems.foursquare.foursquare_api import Foursquare, ServerError
@@ -25,6 +25,6 @@ class Command(BaseCommand):
         #zone = ZoneView(client)
         client.set_access_token(secret.token)
         # client.lists.add({'name':"test list"})
-        print (client.lists({'name': 'test list'}))
+        print(client.lists(LIST_ID='552fc903498ed1f7e625c7ed'))
         #print(zone.load_objects())
         return

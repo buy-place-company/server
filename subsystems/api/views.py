@@ -1,6 +1,6 @@
 import json
 import datetime
-from django.http import HttpResponse
+from django.http import HttpResponse, Http404
 from conf import secret
 from subsystems.db.model_user import User
 from subsystems.db.model_venue import Venue
@@ -110,18 +110,21 @@ class VenueView():
 
 
 def objects_near(request):
-    if not request.user.is_authenticated():
-        return HttpResponse(ERRORS['1'])
+    #if not request.user.is_authenticated():
+    #    return HttpResponse(json.dumps(ERRORS['1']))
     lat = request.GET.get("lat", None)
     lng = request.GET.get("lng", None)
 
-    if lat and lng:
+    if lat is None or lng is None:
         return HttpResponse(json.dumps(ERRORS['2']))
 
-    zone_db = Zone.objects.filter(sw_lat__gt=lat).filter(ne_lat__lt=lat)\
-                          .filter(sw_lng__gt=lng).filter(ne_lng__lt=lng)
+    try:
+        zone_db = Zone.objects.filter(sw_lat__lt=lat).filter(ne_lat__gt=lat)\
+                              .filter(sw_lng__lt=lng).filter(ne_lng__gt=lng).get()
+    except Zone.DoesNotExist:
+        return HttpResponse(json.dumps(ERRORS['3']))
 
-    if not zone_db.get("list_id", None):
+    if not zone_db.list_id:
         return HttpResponse(json.dumps(ERRORS['3']))
 
     zone = ZoneView(sw_lat=zone_db.get("sw_lat"), sw_lng=zone_db.get("sw_lng"),

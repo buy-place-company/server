@@ -1,1 +1,1 @@
-__author__ = 'ruslan'
+from . import urls, views
