@@ -143,7 +143,7 @@ def user_objects(request):
     return HttpResponse(json.dumps({'status': 200, 'objects': objs}, ensure_ascii=False))
 
 
-def object(request):
+def object_action(request):
     if not request.user.is_authenticated():
         return HttpResponse(ERRORS['1'])
 

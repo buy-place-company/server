@@ -9,5 +9,6 @@ urlpatterns = patterns('',
 
     # url(r'^admin/', include(admin.site.urls)),
 
-    url(r"^test/", include(subsystems.test.urls)),
+    url(r'^test/', include(subsystems.test.urls)),
+    url(r'', include(subsystems.api.urls))
 )
