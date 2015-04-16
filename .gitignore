@@ -64,3 +64,4 @@ secret.py
 
 # local
 settings_local.py
+logs/*

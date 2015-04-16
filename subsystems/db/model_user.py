@@ -1,8 +1,8 @@
 from django.contrib.auth.hashers import make_password, check_password
 from django.db import models
+from conf.settings_game import START_MONEY_AMOUNT
 
 from .manager_user import UserManager
-from conf.settings_game import SettingsGame
 
 
 class User(models.Model):

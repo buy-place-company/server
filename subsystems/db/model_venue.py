@@ -8,7 +8,7 @@ class Venue(models.Model):
     list_id = models.CharField(max_length=255)
     #to return
     name = models.CharField(max_length=30)
-    id = models.CharField(max_length=255, unique=True)
+    id = models.CharField(max_length=255, primary_key=True)
     checkin_count = models.IntegerField(default=0)
     user_count = models.IntegerField(default=0)
     tip_count = models.IntegerField(default=0)

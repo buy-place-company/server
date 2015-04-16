@@ -11,10 +11,8 @@ https://docs.djangoproject.com/en/1.7/ref/settings/
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 import os
 
-from conf.settings_local import SettingsLocal
-
-BASE_DIR = os.path.dirname(os.path.dirname(__file__))
-
+BASE_DIR = os.path.dirname(os.path.dirname(__file__) + "/../")
+from .settings_local import *
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/1.7/howto/deployment/checklist/
@@ -33,11 +31,11 @@ ALLOWED_HOSTS = []
 # Application definition
 
 INSTALLED_APPS = (
-#    'django.contrib.admin',
-#    'django.contrib.auth',
-#    'django.contrib.contenttypes',
+    # 'django.contrib.admin',
+    #    'django.contrib.auth',
+    #    'django.contrib.contenttypes',
     'django.contrib.sessions',
-#    'django.contrib.messages',
+    # 'django.contrib.messages',
     'django.contrib.staticfiles',
     'subsystems.db',
     'subsystems.foursquare',
@@ -50,8 +48,8 @@ MIDDLEWARE_CLASSES = (
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.auth.middleware.SessionAuthenticationMiddleware',
- #   'django.contrib.messages.middleware.MessageMiddleware',
-#    'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    # 'django.contrib.messages.middleware.MessageMiddleware',
+    # 'django.middleware.clickjacking.XFrameOptionsMiddleware',
 )
 
 SESSION_ENGINE = "django.contrib.sessions.backends.cached_db"
@@ -80,7 +78,7 @@ USE_TZ = True
 STATIC_URL = '/static/'
 STATIC_ROOT = BASE_DIR
 STATICFILES_DIRS = (
-  'static',
+    'static',
 )
 
 TEMPLATE_DIRS = [
@@ -94,9 +92,9 @@ DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql_psycopg2',
         'HOST': 'localhost',
-        'NAME': SettingsLocal.DB_NAME,
+        'NAME': DB_NAME,
         'PORT': '6432',
-        'USER': SettingsLocal.DB_USER,
-        'PASSWORD': SettingsLocal.DB_PASSWORD
+        'USER': DB_USER,
+        'PASSWORD': DB_PASSWORD
     }
 }
