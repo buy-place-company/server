@@ -46,5 +46,5 @@ class User(models.Model):
 
     experience_count = models.BigIntegerField(default=0)
     money_payed_amount = models.BigIntegerField(default=0)
-    money_amount = models.BigIntegerField(default=SettingsGame.START_MONEY_AMOUNT)
+    money_amount = models.BigIntegerField(default=START_MONEY_AMOUNT)
     buildings_count = models.SmallIntegerField(default=0)
