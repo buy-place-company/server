@@ -4,6 +4,7 @@ from django.db import models
 
 
 class Zone(models.Model):
+    is_active = models.BooleanField(default=True)
     parent_id = models.IntegerField(null=True, blank=True)
     list_id = models.CharField(max_length=255)  # unique пока боком выходит
     timestamp = models.TimeField(verbose_name="timestamp", editable=False)
@@ -12,11 +13,9 @@ class Zone(models.Model):
     ne_lat = models.FloatField(default=0)
     ne_lng = models.FloatField(default=0)
 
-    def save(self, *args, **kwargs):
-        ''' On save, update timestamps '''
-        self.timestamp = datetime.datetime.today()
-        return super(Zone, self).save(*args, **kwargs)
-
+    # делим зону на 2 зоны, причем старая становится неактивной,
+    # а новые занимают ее место
+    # деление происходит по максимальной стороне
     def div(self, min_size):
         lat = abs(self.ne_lat - self.sw_lat)
         lng = abs(self.ne_lng - self.sw_lng)
@@ -54,4 +53,6 @@ class Zone(models.Model):
                 ne_lat=self.ne_lat,
                 ne_lng=self.ne_lng
             )
+        self.is_active = False
+        self.save(update_fields=['is_active'])
         return z1, z2
