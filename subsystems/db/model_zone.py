@@ -13,7 +13,7 @@ class Zone(models.Model):
         lat = abs(self.ne_lat - self.sw_lat)
         lng = abs(self.ne_lng - self.sw_lng)
         if max(lat, lng) < min_size:
-            return False
+            return None, None
         if lng < lat:
             middle = (self.sw_lat + self.ne_lat) / 2
             z1 = Zone.objects.create(
@@ -46,3 +46,4 @@ class Zone(models.Model):
                 ne_lat=self.ne_lat,
                 ne_lng=self.ne_lng
             )
+        return z1, z2
