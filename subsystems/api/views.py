@@ -125,10 +125,12 @@ def objects_near(request):
         return HttpResponse(json.dumps(ERRORS['3']))
 
     if not zone_db.list_id:
-        return HttpResponse(json.dumps(ERRORS['3']))
+        list_id = None
+    else:
+        list_id = zone_db.list_id
 
-    zone = ZoneView(sw_lat=zone_db.get("sw_lat"), sw_lng=zone_db.get("sw_lng"),
-                    ne_lat=zone_db.get("ne_lat"), ne_lng=zone_db.get("ne_lng"), list_id=zone_db.get("list_id"))
+    zone = ZoneView(sw_lat=zone_db.sw_lat, sw_lng=zone_db.sw_lng,
+                    ne_lat=zone_db.ne_lat, ne_lng=zone_db.get.ne_lng, list_id=list_id)
 
     objs = zone.venues()
     if objs is not None:
