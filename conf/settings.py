@@ -12,6 +12,7 @@ https://docs.djangoproject.com/en/1.7/ref/settings/
 import os
 
 BASE_DIR = os.path.dirname(os.path.dirname(__file__) + "/../")
+from .settings_local import *
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/1.7/howto/deployment/checklist/
@@ -87,13 +88,13 @@ TEMPLATE_DIRS = [
 # User
 AUTH_USER_MODEL = 'db.User'
 
-# DATABASES = {
-#     'default': {
-#         'ENGINE': 'django.db.backends.postgresql_psycopg2',
-#         'HOST': 'localhost',
-#         'NAME': DB_NAME,
-#         'PORT': '6432',
-#         'USER': DB_USER,
-#         'PASSWORD': DB_PASSWORD
-#     }
-# }
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.postgresql_psycopg2',
+        'HOST': 'localhost',
+        'NAME': SettingsLocal.DB_NAME,
+        'PORT': '6432',
+        'USER': SettingsLocal.DB_USER,
+        'PASSWORD': SettingsLocal.DB_PASSWORD
+    }
+}
