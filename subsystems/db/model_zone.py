@@ -3,6 +3,23 @@ import datetime
 from django.db import models
 
 
+class ZoneMock:
+    def __init__(self, is_active=None, parent_id=None, list_id=None, timestamp=None,
+                 sw_lat=None, sw_lng=None, ne_lat=None, ne_lng=None):
+        self.is_active = is_active
+        self.parent_id = parent_id
+        self.list_id = list_id
+        self.timestamp = timestamp
+        self.sw_lat = sw_lat
+        self.sw_lng = sw_lng
+        self.ne_lat = ne_lat
+        self.ne_lng = ne_lng
+
+    def create(self, **kwargs):
+        for field, value in kwargs.items():
+            setattr(self, field, value)
+
+
 class Zone(models.Model):
     is_active = models.BooleanField(default=True)
     parent_id = models.IntegerField(null=True, blank=True)

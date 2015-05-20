@@ -1,7 +1,10 @@
 #!/usr/bin/env python
 # -*- coding: UTF-8 -*-
 # (c) 2014 Mike Lewis
-import logging; log = logging.getLogger(__name__)
+import logging
+import pdb
+
+log = logging.getLogger(__name__)
 
 # Try to load JSON libraries in this order:
 # ujson -> simplejson -> json
@@ -19,19 +22,16 @@ import time
 import sys
 
 # 3rd party libraries that might not be present during initial install
-#  but we need to import for the version #
-try:
-    import requests
+# but we need to import for the version #
+import requests
 
-    from six.moves.urllib import parse
-    from six.moves import xrange
-    import six
+from six.moves.urllib import parse
+from six.moves import xrange
+import six
 
-    # Monkey patch to requests' json using ujson when available;
-    # Otherwise it wouldn't affect anything
-    requests.models.json = json
-except ImportError:
-    pass
+# Monkey patch to requests' json using ujson when available;
+# Otherwise it wouldn't affect anything
+requests.models.json = json
 
 
 # Helpful for debugging what goes in and out
@@ -41,6 +41,7 @@ if NETWORK_DEBUG:
     # You will see the REQUEST, including HEADERS and DATA, and RESPONSE with HEADERS but without DATA.
     # The only thing missing will be the response.body which is not logged.
     import httplib
+
     httplib.HTTPConnection.debuglevel = 1
     # You must initialize logging, otherwise you'll not see debug output.
     logging.basicConfig()
@@ -51,9 +52,9 @@ if NETWORK_DEBUG:
 
 
 # Default API version. Move this forward as the library is maintained and kept current
-API_VERSION_YEAR  = '2015'
+API_VERSION_YEAR = '2015'
 API_VERSION_MONTH = '04'
-API_VERSION_DAY   = '07'
+API_VERSION_DAY = '07'
 API_VERSION = '{year}{month}{day}'.format(year=API_VERSION_YEAR, month=API_VERSION_MONTH, day=API_VERSION_DAY)
 
 # Library versioning matches supported foursquare API version
@@ -75,18 +76,50 @@ VERIFY_SSL = True
 
 
 # Generic foursquare exception
-class FoursquareException(Exception): pass
+class FoursquareException(Exception):
+    pass
+
+
 # Specific exceptions
-class InvalidAuth(FoursquareException): pass
-class ParamError(FoursquareException): pass
-class EndpointError(FoursquareException): pass
-class NotAuthorized(FoursquareException): pass
-class RateLimitExceeded(FoursquareException): pass
-class Deprecated(FoursquareException): pass
-class ServerError(FoursquareException): pass
-class FailedGeocode(FoursquareException): pass
-class GeocodeTooBig(FoursquareException): pass
-class Other(FoursquareException): pass
+class InvalidAuth(FoursquareException):
+    pass
+
+
+class ParamError(FoursquareException):
+    pass
+
+
+class EndpointError(FoursquareException):
+    pass
+
+
+class NotAuthorized(FoursquareException):
+    pass
+
+
+class RateLimitExceeded(FoursquareException):
+    pass
+
+
+class Deprecated(FoursquareException):
+    pass
+
+
+class ServerError(FoursquareException):
+    pass
+
+
+class FailedGeocode(FoursquareException):
+    pass
+
+
+class GeocodeTooBig(FoursquareException):
+    pass
+
+
+class Other(FoursquareException):
+    pass
+
 
 error_types = {
     'invalid_auth': InvalidAuth,
@@ -102,11 +135,11 @@ error_types = {
 }
 
 
-
 class Foursquare(object):
     """foursquare V2 API wrapper"""
 
-    def __init__(self, client_id=None, client_secret=None, access_token=None, redirect_uri=None, version=None, lang=None):
+    def __init__(self, client_id=None, client_secret=None, access_token=None, redirect_uri=None, version=None,
+                 lang=None):
         """Sets up the api object"""
         # Set up OAuth
         self.oauth = self.OAuth(client_id, client_secret, redirect_uri)
@@ -138,6 +171,7 @@ class Foursquare(object):
 
     class OAuth(object):
         """Handles OAuth authentication procedures and helps retrieve tokens"""
+
         def __init__(self, client_id, client_secret, redirect_uri):
             self.client_id = client_id
             self.client_secret = client_secret
@@ -169,9 +203,10 @@ class Foursquare(object):
             # Get the response from the token uri and attempt to parse
             return _get(TOKEN_ENDPOINT, params=params)['data']['access_token']
 
-
+    # noinspection PyAttributeOutsideInit
     class Requester(object):
         """Api requesting object"""
+
         def __init__(self, client_id=None, client_secret=None, access_token=None, version=None, lang=None):
             """Sets up the api object"""
             self.client_id = client_id
@@ -186,10 +221,12 @@ class Foursquare(object):
         def set_token(self, access_token):
             """Set the OAuth token for this requester"""
             self.oauth_token = access_token
-            self.userless = not bool(access_token) # Userless if no access_token
+            self.userless = not bool(access_token)  # Userless if no access_token
 
-        def GET(self, path, params={}, **kwargs):
+        def GET(self, path, params=None, **kwargs):
             """GET request that returns processed data"""
+            if not params:
+                params = {}
             params = params.copy()
             # Short-circuit multi requests
             if kwargs.get('multi') is True:
@@ -206,8 +243,10 @@ class Foursquare(object):
             self.rate_remaining = result['headers']['X-RateLimit-Remaining']
             return result['data']['response']
 
-        def add_multi_request(self, path, params={}):
+        def add_multi_request(self, path, params=None):
             """Add multi request to list and return the number of requests added"""
+            if not params:
+                params = {}
             url = path
             if params:
                 # First convert the params into a query string then quote the whole string
@@ -216,8 +255,10 @@ class Foursquare(object):
             self.multi_requests.append(url)
             return len(self.multi_requests)
 
-        def POST(self, path, data={}, files=None):
+        def POST(self, path, data=None, files=None):
             """POST request that returns processed data"""
+            if not data:
+                data = {}
             if data is not None:
                 data = data.copy()
             if files is not None:
@@ -252,9 +293,9 @@ class Foursquare(object):
                 headers['Accept-Language'] = self.lang
             return headers
 
-
     class _Endpoint(object):
         """Generic endpoint class"""
+
         def __init__(self, requester):
             """Stores the request function for retrieving data"""
             self.requester = requester
@@ -273,21 +314,22 @@ class Foursquare(object):
             """Use the requester to post the data"""
             return self.requester.POST(self._expanded_path(path), *args, **kwargs)
 
-
-
     class Users(_Endpoint):
         """User specific endpoint"""
         endpoint = 'users'
 
-        def __call__(self, USER_ID=u'self', multi=False):
+        def __call__(self, user_id=u'self', multi=False):
             """https://developer.foursquare.com/docs/users/users"""
-            return self.GET('{USER_ID}'.format(USER_ID=USER_ID), multi=multi)
+            return self.GET('{user_id}'.format(user_id=user_id), multi=multi)
 
         """
         General
         """
-        def leaderboard(self, params={}, multi=False):
+
+        def leaderboard(self, params=None, multi=False):
             """https://developer.foursquare.com/docs/users/leaderboard"""
+            if not params:
+                params = {}
             return self.GET('leaderboard', params, multi=multi)
 
         def requests(self, multi=False):
@@ -301,19 +343,22 @@ class Foursquare(object):
         """
         Aspects
         """
-        def badges(self, USER_ID=u'self', multi=False):
+
+        def badges(self, user_id=u'self', multi=False):
             """https://developer.foursquare.com/docs/users/badges"""
-            return self.GET('{USER_ID}/badges'.format(USER_ID=USER_ID), multi=multi)
+            return self.GET('{user_id}/badges'.format(user_id=user_id), multi=multi)
 
-        def checkins(self, USER_ID=u'self', params={}, multi=False):
+        def checkins(self, user_id=u'self', params=None, multi=False):
             """https://developer.foursquare.com/docs/users/checkins"""
-            return self.GET('{USER_ID}/checkins'.format(USER_ID=USER_ID), params, multi=multi)
+            if not params:
+                params = {}
+            return self.GET('{user_id}/checkins'.format(user_id=user_id), params, multi=multi)
 
-        def all_checkins(self, USER_ID=u'self'):
+        def all_checkins(self, user_id=u'self'):
             """Utility function: Get every checkin this user has ever made"""
             offset = 0
-            while(True):
-                checkins = self.checkins(USER_ID=USER_ID, params={'limit': 250, 'offset': offset})
+            while True:
+                checkins = self.checkins(user_id=user_id, params={'limit': 250, 'offset': offset})
                 # Yield out each checkin
                 for checkin in checkins['checkins']['items']:
                     yield checkin
@@ -323,71 +368,87 @@ class Foursquare(object):
                     # Break once we've processed everything
                     break
 
-        def friends(self, USER_ID=u'self', params={}, multi=False):
+        def friends(self, user_id=u'self', params=None, multi=False):
             """https://developer.foursquare.com/docs/users/friends"""
-            return self.GET('{USER_ID}/friends'.format(USER_ID=USER_ID), params, multi=multi)
+            if not params:
+                params = {}
+            return self.GET('{user_id}/friends'.format(user_id=user_id), params, multi=multi)
 
-        def lists(self, USER_ID=u'self', params={}, multi=False):
+        def lists(self, user_id=u'self', params=None, multi=False):
             """https://developer.foursquare.com/docs/users/lists"""
-            return self.GET('{USER_ID}/lists'.format(USER_ID=USER_ID), params, multi=multi)
+            if not params:
+                params = {}
+            return self.GET('{user_id}/lists'.format(user_id=user_id), params, multi=multi)
 
-        def mayorships(self, USER_ID=u'self', params={}, multi=False):
+        def mayorships(self, user_id=u'self', params=None, multi=False):
             """https://developer.foursquare.com/docs/users/mayorships"""
-            return self.GET('{USER_ID}/mayorships'.format(USER_ID=USER_ID), params, multi=multi)
+            if not params:
+                params = {}
+            return self.GET('{user_id}/mayorships'.format(user_id=user_id), params, multi=multi)
 
-        def photos(self, USER_ID=u'self', params={}, multi=False):
+        def photos(self, user_id=u'self', params=None, multi=False):
             """https://developer.foursquare.com/docs/users/photos"""
-            return self.GET('{USER_ID}/photos'.format(USER_ID=USER_ID), params, multi=multi)
+            if not params:
+                params = {}
+            return self.GET('{user_id}/photos'.format(user_id=user_id), params, multi=multi)
 
-        def tips(self, USER_ID=u'self', params={}, multi=False):
+        def tips(self, user_id=u'self', params=None, multi=False):
             """https://developer.foursquare.com/docs/users/tips"""
-            return self.GET('{USER_ID}/tips'.format(USER_ID=USER_ID), params, multi=multi)
+            if not params:
+                params = {}
+            return self.GET('{user_id}/tips'.format(user_id=user_id), params, multi=multi)
 
-        def todos(self, USER_ID=u'self', params={}, multi=False):
+        def todos(self, user_id=u'self', params=None, multi=False):
             """https://developer.foursquare.com/docs/users/todos"""
-            return self.GET('{USER_ID}/todos'.format(USER_ID=USER_ID), params, multi=multi)
+            if not params:
+                params = {}
+            return self.GET('{user_id}/todos'.format(user_id=user_id), params, multi=multi)
 
-        def venuehistory(self, USER_ID=u'self', params={}, multi=False):
+        def venuehistory(self, user_id=u'self', params=None, multi=False):
             """https://developer.foursquare.com/docs/users/venuehistory"""
-            return self.GET('{USER_ID}/venuehistory'.format(USER_ID=USER_ID), params, multi=multi)
+            if not params:
+                params = {}
+            return self.GET('{user_id}/venuehistory'.format(user_id=user_id), params, multi=multi)
 
-        def venuelikes(self, USER_ID=u'self', params={}, multi=False):
+        def venuelikes(self, user_id=u'self', params=None, multi=False):
             """https://developer.foursquare.com/docs/users/venuelikes"""
-            return self.GET('{USER_ID}/venuelikes'.format(USER_ID=USER_ID), params, multi=multi)
+            if not params:
+                params = {}
+            return self.GET('{user_id}/venuelikes'.format(user_id=user_id), params, multi=multi)
 
         """
         Actions
         """
-        def approve(self, USER_ID):
+
+        def approve(self, user_id):
             """https://developer.foursquare.com/docs/users/approve"""
-            return self.POST('{USER_ID}/approve'.format(USER_ID=USER_ID))
+            return self.POST('{user_id}/approve'.format(user_id=user_id))
 
-        def deny(self, USER_ID):
+        def deny(self, user_id):
             """https://developer.foursquare.com/docs/users/deny"""
-            return self.POST('{USER_ID}/deny'.format(USER_ID=USER_ID))
+            return self.POST('{user_id}/deny'.format(user_id=user_id))
 
-        def request(self, USER_ID):
+        def request(self, user_id):
             """https://developer.foursquare.com/docs/users/request"""
-            return self.POST('{USER_ID}/request'.format(USER_ID=USER_ID))
+            return self.POST('{user_id}/request'.format(user_id=user_id))
 
-        def setpings(self, USER_ID, params):
+        def setpings(self, user_id, params):
             """https://developer.foursquare.com/docs/users/setpings"""
-            return self.POST('{USER_ID}/setpings'.format(USER_ID=USER_ID), params)
+            return self.POST('{user_id}/setpings'.format(user_id=user_id), params)
 
-        def unfriend(self, USER_ID):
+        def unfriend(self, user_id):
             """https://developer.foursquare.com/docs/users/unfriend"""
-            return self.POST('{USER_ID}/unfriend'.format(USER_ID=USER_ID))
+            return self.POST('{user_id}/unfriend'.format(user_id=user_id))
 
-        def update(self, params={}, photo_data=None, photo_content_type='image/jpeg'):
+        def update(self, params=None, photo_data=None, photo_content_type='image/jpeg'):
             """https://developer.foursquare.com/docs/users/update"""
+            if not params:
+                params = {}
             if photo_data:
-                files = { 'photo': ('photo', photo_data, photo_content_type) }
+                files = {'photo': ('photo', photo_data, photo_content_type)}
             else:
                 files = None
             return self.POST('self/update', data=params, files=files)
-
-
-
 
     class Venues(_Endpoint):
         """Venue specific endpoint"""
@@ -396,16 +457,19 @@ class Foursquare(object):
         """
         General
         """
-        def __call__(self, VENUE_ID, multi=False):
+
+        def __call__(self, venue_id, multi=False):
             """https://developer.foursquare.com/docs/venues/venues"""
-            return self.GET('{VENUE_ID}'.format(VENUE_ID=VENUE_ID), multi=multi)
+            return self.GET('{venue_id}'.format(venue_id=venue_id), multi=multi)
 
         def add(self, params):
             """https://developer.foursquare.com/docs/venues/add"""
             return self.POST('add', params)
 
-        def categories(self, params={}, multi=False):
+        def categories(self, params=None, multi=False):
             """https://developer.foursquare.com/docs/venues/categories"""
+            if not params:
+                params = {}
             return self.GET('categories', params, multi=multi)
 
         def explore(self, params, multi=False):
@@ -417,6 +481,7 @@ class Foursquare(object):
             return self.GET('managed', multi=multi)
 
         MAX_SEARCH_LIMIT = 50
+
         def search(self, params, multi=False):
             """https://developer.foursquare.com/docs/venues/search"""
             return self.GET('search', params, multi=multi)
@@ -432,122 +497,146 @@ class Foursquare(object):
         """
         Aspects
         """
-        def events(self, VENUE_ID, multi=False):
+
+        def events(self, venue_id, multi=False):
             """https://developer.foursquare.com/docs/venues/events"""
-            return self.GET('{VENUE_ID}/events'.format(VENUE_ID=VENUE_ID), multi=multi)
+            return self.GET('{venue_id}/events'.format(venue_id=venue_id), multi=multi)
 
-        def herenow(self, VENUE_ID, params={}, multi=False):
+        def herenow(self, venue_id, params=None, multi=False):
             """https://developer.foursquare.com/docs/venues/herenow"""
-            return self.GET('{VENUE_ID}/herenow'.format(VENUE_ID=VENUE_ID), params, multi=multi)
+            if not params:
+                params = {}
+            return self.GET('{venue_id}/herenow'.format(venue_id=venue_id), params, multi=multi)
 
-        def links(self, VENUE_ID, params={}, multi=False):
+        def links(self, venue_id, params=None, multi=False):
             """https://developer.foursquare.com/docs/venues/links"""
-            return self.GET('{VENUE_ID}/links'.format(VENUE_ID=VENUE_ID), params, multi=multi)
+            if not params:
+                params = {}
+            return self.GET('{venue_id}/links'.format(venue_id=venue_id), params, multi=multi)
 
-        def listed(self, VENUE_ID, params={}, multi=False):
+        def listed(self, venue_id, params=None, multi=False):
             """https://developer.foursquare.com/docs/venues/listed"""
-            return self.GET('{VENUE_ID}/listed'.format(VENUE_ID=VENUE_ID), params, multi=multi)
+            if not params:
+                params = {}
+            return self.GET('{venue_id}/listed'.format(venue_id=venue_id), params, multi=multi)
 
-        def menu(self, VENUE_ID, params={}, multi=False):
+        def menu(self, venue_id, params=None, multi=False):
             """https://developer.foursquare.com/docs/venues/menu"""
-            return self.GET('{VENUE_ID}/menu'.format(VENUE_ID=VENUE_ID), params, multi=multi)
+            if not params:
+                params = {}
+            return self.GET('{venue_id}/menu'.format(venue_id=venue_id), params, multi=multi)
 
-        def photos(self, VENUE_ID, params, multi=False):
+        def photos(self, venue_id, params, multi=False):
             """https://developer.foursquare.com/docs/venues/photos"""
-            return self.GET('{VENUE_ID}/photos'.format(VENUE_ID=VENUE_ID), params, multi=multi)
+            return self.GET('{venue_id}/photos'.format(venue_id=venue_id), params, multi=multi)
 
-        def similar(self, VENUE_ID, multi=False):
+        def similar(self, venue_id, multi=False):
             """https://developer.foursquare.com/docs/venues/similar"""
-            return self.GET('{VENUE_ID}/similar'.format(VENUE_ID=VENUE_ID), multi=multi)
+            return self.GET('{venue_id}/similar'.format(venue_id=venue_id), multi=multi)
 
-        def stats(self, VENUE_ID, multi=False):
+        def stats(self, venue_id, multi=False):
             """https://developer.foursquare.com/docs/venues/stats"""
-            return self.GET('{VENUE_ID}/stats'.format(VENUE_ID=VENUE_ID), multi=multi)
+            return self.GET('{venue_id}/stats'.format(venue_id=venue_id), multi=multi)
 
-        def tips(self, VENUE_ID, params={}, multi=False):
+        def tips(self, venue_id, params=None, multi=False):
             """https://developer.foursquare.com/docs/venues/tips"""
-            return self.GET('{VENUE_ID}/tips'.format(VENUE_ID=VENUE_ID), params, multi=multi)
+            if not params:
+                params = {}
+            return self.GET('{venue_id}/tips'.format(venue_id=venue_id), params, multi=multi)
 
-        def nextvenues(self, VENUE_ID, params={}, multi=False):
+        def nextvenues(self, venue_id, params=None, multi=False):
             """https://developer.foursquare.com/docs/venues/nextvenues"""
-            return self.GET('{VENUE_ID}/nextvenues'.format(VENUE_ID=VENUE_ID), params, multi=multi)
+            if not params:
+                params = {}
+            return self.GET('{venue_id}/nextvenues'.format(venue_id=venue_id), params, multi=multi)
 
-        def likes(self, VENUE_ID, params={}, multi=False):
+        def likes(self, venue_id, params=None, multi=False):
             """https://developer.foursquare.com/docs/venues/likes"""
-            return self.GET('{VENUE_ID}/likes'.format(VENUE_ID=VENUE_ID), params, multi=multi)
+            if not params:
+                params = {}
+            return self.GET('{venue_id}/likes'.format(venue_id=venue_id), params, multi=multi)
 
-        def hours(self, VENUE_ID, params={}, multi=False):
+        def hours(self, venue_id, params=None, multi=False):
             """https://developer.foursquare.com/docs/venues/hours"""
-            return self.GET('{VENUE_ID}/hours'.format(VENUE_ID=VENUE_ID), params, multi=multi)
+            if not params:
+                params = {}
+            return self.GET('{venue_id}/hours'.format(venue_id=venue_id), params, multi=multi)
 
         """
         Actions
         """
-        def edit(self, VENUE_ID, params={}):
+
+        def edit(self, venue_id, params=None):
             """https://developer.foursquare.com/docs/venues/edit"""
-            return self.POST('{VENUE_ID}/edit'.format(VENUE_ID=VENUE_ID), params)
+            if not params:
+                params = {}
+            return self.POST('{venue_id}/edit'.format(venue_id=venue_id), params)
 
-        def flag(self, VENUE_ID, params):
+        def flag(self, venue_id, params):
             """https://developer.foursquare.com/docs/venues/flag"""
-            return self.POST('{VENUE_ID}/flag'.format(VENUE_ID=VENUE_ID), params)
+            return self.POST('{venue_id}/flag'.format(venue_id=venue_id), params)
 
-        def marktodo(self, VENUE_ID, params={}):
+        def marktodo(self, venue_id, params=None):
             """https://developer.foursquare.com/docs/venues/marktodo"""
-            return self.POST('{VENUE_ID}/marktodo'.format(VENUE_ID=VENUE_ID), params)
+            if not params:
+                params = {}
+            return self.POST('{venue_id}/marktodo'.format(venue_id=venue_id), params)
 
-        def proposeedit(self, VENUE_ID, params):
+        def proposeedit(self, venue_id, params):
             """https://developer.foursquare.com/docs/venues/proposeedit"""
-            return self.POST('{VENUE_ID}/proposeedit'.format(VENUE_ID=VENUE_ID), params)
+            return self.POST('{venue_id}/proposeedit'.format(venue_id=venue_id), params)
 
-        def setrole(self, VENUE_ID, params):
+        def setrole(self, venue_id, params):
             """https://developer.foursquare.com/docs/venues/setrole"""
-            return self.POST('{VENUE_ID}/setrole'.format(VENUE_ID=VENUE_ID), params)
-
-
+            return self.POST('{venue_id}/setrole'.format(venue_id=venue_id), params)
 
     class Checkins(_Endpoint):
         """Checkin specific endpoint"""
         endpoint = 'checkins'
 
-        def __call__(self, CHECKIN_ID, params={}, multi=False):
+        def __call__(self, checkin_id, params=None, multi=False):
             """https://developer.foursquare.com/docs/checkins/checkins"""
-            return self.GET('{CHECKIN_ID}'.format(CHECKIN_ID=CHECKIN_ID), params, multi=multi)
+            if not params:
+                params = {}
+            return self.GET('{checkin_id}'.format(checkin_id=checkin_id), params, multi=multi)
 
         def add(self, params):
             """https://developer.foursquare.com/docs/checkins/add"""
             return self.POST('add', params)
 
-        def recent(self, params={}, multi=False):
+        def recent(self, params=None, multi=False):
             """https://developer.foursquare.com/docs/checkins/recent"""
+            if not params:
+                params = {}
             return self.GET('recent', params, multi=multi)
 
         """
         Actions
         """
-        def addcomment(self, CHECKIN_ID, params):
+
+        def addcomment(self, checkin_id, params):
             """https://developer.foursquare.com/docs/checkins/addcomment"""
-            return self.POST('{CHECKIN_ID}/addcomment'.format(CHECKIN_ID=CHECKIN_ID), params)
+            return self.POST('{checkin_id}/addcomment'.format(checkin_id=checkin_id), params)
 
-        def addpost(self, CHECKIN_ID, params):
+        def addpost(self, checkin_id, params):
             """https://developer.foursquare.com/docs/checkins/addpost"""
-            return self.POST('{CHECKIN_ID}/addpost'.format(CHECKIN_ID=CHECKIN_ID), params)
+            return self.POST('{checkin_id}/addpost'.format(checkin_id=checkin_id), params)
 
-        def deletecomment(self, CHECKIN_ID, params):
+        def deletecomment(self, checkin_id, params):
             """https://developer.foursquare.com/docs/checkins/deletecomment"""
-            return self.POST('{CHECKIN_ID}/deletecomment'.format(CHECKIN_ID=CHECKIN_ID), params)
+            return self.POST('{checkin_id}/deletecomment'.format(checkin_id=checkin_id), params)
 
-        def reply(self, CHECKIN_ID, params):
+        def reply(self, checkin_id, params):
             """https://developer.foursquare.com/docs/checkins/reply"""
-            return self.POST('{CHECKIN_ID}/reply'.format(CHECKIN_ID=CHECKIN_ID), params)
-
+            return self.POST('{checkin_id}/reply'.format(checkin_id=checkin_id), params)
 
     class Tips(_Endpoint):
         """Tips specific endpoint"""
         endpoint = 'tips'
 
-        def __call__(self, TIP_ID, multi=False):
+        def __call__(self, tip_id, multi=False):
             """https://developer.foursquare.com/docs/tips/tips"""
-            return self.GET('{TIP_ID}'.format(TIP_ID=TIP_ID), multi=multi)
+            return self.GET('{tip_id}'.format(tip_id=tip_id), multi=multi)
 
         def add(self, params):
             """https://developer.foursquare.com/docs/tips/add"""
@@ -560,37 +649,44 @@ class Foursquare(object):
         """
         Aspects
         """
-        def done(self, TIP_ID, params={}, multi=False):
-            """https://developer.foursquare.com/docs/tips/done"""
-            return self.GET('{TIP_ID}/done'.format(TIP_ID=TIP_ID), params, multi=multi)
 
-        def listed(self, TIP_ID, params={}, multi=False):
+        def done(self, tip_id, params=None, multi=False):
+            """https://developer.foursquare.com/docs/tips/done"""
+            if not params:
+                params = {}
+            return self.GET('{tip_id}/done'.format(tip_id=tip_id), params, multi=multi)
+
+        def listed(self, tip_id, params=None, multi=False):
             """https://developer.foursquare.com/docs/tips/listed"""
-            return self.GET('{TIP_ID}/listed'.format(TIP_ID=TIP_ID), params, multi=multi)
+            if not params:
+                params = {}
+            return self.GET('{tip_id}/listed'.format(tip_id=tip_id), params, multi=multi)
 
         """
         Actions
         """
-        def markdone(self, TIP_ID):
+
+        def markdone(self, tip_id):
             """https://developer.foursquare.com/docs/tips/markdone"""
-            return self.POST('{TIP_ID}/markdone'.format(TIP_ID=TIP_ID))
+            return self.POST('{tip_id}/markdone'.format(tip_id=tip_id))
 
-        def marktodo(self, TIP_ID):
+        def marktodo(self, tip_id):
             """https://developer.foursquare.com/docs/tips/marktodo"""
-            return self.POST('{TIP_ID}/marktodo'.format(TIP_ID=TIP_ID))
+            return self.POST('{tip_id}/marktodo'.format(tip_id=tip_id))
 
-        def unmark(self, TIP_ID):
+        def unmark(self, tip_id):
             """https://developer.foursquare.com/docs/tips/unmark"""
-            return self.POST('{TIP_ID}/unmark'.format(TIP_ID=TIP_ID))
-
+            return self.POST('{tip_id}/unmark'.format(tip_id=tip_id))
 
     class Lists(_Endpoint):
         """Lists specific endpoint"""
         endpoint = 'lists'
 
-        def __call__(self, LIST_ID, params={}, multi=False):
+        def __call__(self, list_id, params=None, multi=False):
             """https://developer.foursquare.com/docs/lists/lists"""
-            return self.GET('{LIST_ID}'.format(LIST_ID=LIST_ID), params, multi=multi)
+            if not params:
+                params = {}
+            return self.GET('{list_id}'.format(list_id=list_id), params, multi=multi)
 
         def add(self, params):
             """https://developer.foursquare.com/docs/lists/add"""
@@ -599,79 +695,79 @@ class Foursquare(object):
         """
         Aspects
         """
-        def followers(self, LIST_ID, multi=False):
+
+        def followers(self, list_id, multi=False):
             """https://developer.foursquare.com/docs/lists/followers"""
-            return self.GET('{LIST_ID}/followers'.format(LIST_ID=LIST_ID), multi=multi)
+            return self.GET('{list_id}/followers'.format(list_id=list_id), multi=multi)
 
-        def suggestphoto(self, LIST_ID, params, multi=False):
+        def suggestphoto(self, list_id, params, multi=False):
             """https://developer.foursquare.com/docs/lists/suggestphoto"""
-            return self.GET('{LIST_ID}/suggestphoto'.format(LIST_ID=LIST_ID), params, multi=multi)
+            return self.GET('{list_id}/suggestphoto'.format(list_id=list_id), params, multi=multi)
 
-        def suggesttip(self, LIST_ID, params, multi=False):
+        def suggesttip(self, list_id, params, multi=False):
             """https://developer.foursquare.com/docs/lists/suggesttip"""
-            return self.GET('{LIST_ID}/suggesttip'.format(LIST_ID=LIST_ID), params, multi=multi)
+            return self.GET('{list_id}/suggesttip'.format(list_id=list_id), params, multi=multi)
 
-        def suggestvenues(self, LIST_ID, multi=False):
+        def suggestvenues(self, list_id, multi=False):
             """https://developer.foursquare.com/docs/lists/suggestvenues"""
-            return self.GET('{LIST_ID}/suggestvenues'.format(LIST_ID=LIST_ID), multi=multi)
+            return self.GET('{list_id}/suggestvenues'.format(list_id=list_id), multi=multi)
 
         """
         Actions
         """
-        def additem(self, LIST_ID, params):
+
+        def additem(self, list_id, params):
             """https://developer.foursquare.com/docs/lists/additem"""
-            return self.POST('{LIST_ID}/additem'.format(LIST_ID=LIST_ID), params)
+            return self.POST('{list_id}/additem'.format(list_id=list_id), params)
 
-        def deleteitem(self, LIST_ID, params):
+        def deleteitem(self, list_id, params):
             """https://developer.foursquare.com/docs/lists/deleteitem"""
-            return self.POST('{LIST_ID}/deleteitem'.format(LIST_ID=LIST_ID), params)
+            return self.POST('{list_id}/deleteitem'.format(list_id=list_id), params)
 
-        def follow(self, LIST_ID):
+        def follow(self, list_id):
             """https://developer.foursquare.com/docs/lists/follow"""
-            return self.POST('{LIST_ID}/follow'.format(LIST_ID=LIST_ID))
+            return self.POST('{list_id}/follow'.format(list_id=list_id))
 
-        def moveitem(self, LIST_ID, params):
+        def moveitem(self, list_id, params):
             """https://developer.foursquare.com/docs/lists/moveitem"""
-            return self.POST('{LIST_ID}/moveitem'.format(LIST_ID=LIST_ID), params)
+            return self.POST('{list_id}/moveitem'.format(list_id=list_id), params)
 
-        def share(self, LIST_ID, params):
+        def share(self, list_id, params):
             """https://developer.foursquare.com/docs/lists/share"""
-            return self.POST('{LIST_ID}/share'.format(LIST_ID=LIST_ID), params)
+            return self.POST('{list_id}/share'.format(list_id=list_id), params)
 
-        def unfollow(self, LIST_ID):
+        def unfollow(self, list_id):
             """https://developer.foursquare.com/docs/tips/unfollow"""
-            return self.POST('{LIST_ID}/unfollow'.format(LIST_ID=LIST_ID))
+            return self.POST('{list_id}/unfollow'.format(list_id=list_id))
 
-        def update(self, LIST_ID, params):
+        def update(self, list_id, params):
             """https://developer.foursquare.com/docs/tips/update"""
-            return self.POST('{LIST_ID}/update'.format(LIST_ID=LIST_ID), params)
+            return self.POST('{list_id}/update'.format(list_id=list_id), params)
 
-        def updateitem(self, LIST_ID, params):
+        def updateitem(self, list_id, params):
             """https://developer.foursquare.com/docs/tips/updateitem"""
-            return self.POST('{LIST_ID}/updateitem'.format(LIST_ID=LIST_ID), params)
-
+            return self.POST('{list_id}/updateitem'.format(list_id=list_id), params)
 
     class Photos(_Endpoint):
         """Photo specific endpoint"""
         endpoint = 'photos'
 
-        def __call__(self, PHOTO_ID, multi=False):
+        def __call__(self, photo_id, multi=False):
             """https://developer.foursquare.com/docs/photos/photos"""
-            return self.GET('{PHOTO_ID}'.format(PHOTO_ID=PHOTO_ID), multi=multi)
+            return self.GET('{photo_id}'.format(photo_id=photo_id), multi=multi)
 
         def add(self, photo_data, params, photo_content_type='image/jpeg'):
             """https://developer.foursquare.com/docs/photos/add"""
-            files = { 'photo': ('photo', photo_data, photo_content_type) }
+            files = {'photo': ('photo', photo_data, photo_content_type)}
             return self.POST('add', data=params, files=files)
-
 
     class Settings(_Endpoint):
         """Setting specific endpoint"""
         endpoint = 'settings'
 
-        def __call__(self, SETTING_ID, multi=False):
+        def __call__(self, setting_id, multi=False):
             """https://developer.foursquare.com/docs/settings/settings"""
-            return self.GET('{SETTING_ID}'.format(SETTING_ID=SETTING_ID), multi=multi)
+            return self.GET('{setting_id}'.format(setting_id=setting_id), multi=multi)
 
         def all(self, multi=False):
             """https://developer.foursquare.com/docs/settings/all"""
@@ -680,18 +776,18 @@ class Foursquare(object):
         """
         Actions
         """
-        def set(self, SETTING_ID, params):
-            """https://developer.foursquare.com/docs/settings/set"""
-            return self.POST('{SETTING_ID}/set'.format(SETTING_ID=SETTING_ID), params)
 
+        def set(self, setting_id, params):
+            """https://developer.foursquare.com/docs/settings/set"""
+            return self.POST('{setting_id}/set'.format(setting_id=setting_id), params)
 
     class Specials(_Endpoint):
         """Specials specific endpoint"""
         endpoint = 'specials'
 
-        def __call__(self, SPECIAL_ID, params, multi=False):
+        def __call__(self, special_id, params, multi=False):
             """https://developer.foursquare.com/docs/specials/specials"""
-            return self.GET('{SPECIAL_ID}'.format(SPECIAL_ID=SPECIAL_ID), params, multi=multi)
+            return self.GET('{special_id}'.format(special_id=special_id), params, multi=multi)
 
         def search(self, params, multi=False):
             """https://developer.foursquare.com/docs/specials/search"""
@@ -700,22 +796,22 @@ class Foursquare(object):
         """
         Actions
         """
-        def add(self, SPECIAL_ID, params):
+
+        def add(self, special_id, params):
             """https://developer.foursquare.com/docs/specials/add"""
             return self.POST('add', params)
 
-        def flag(self, SPECIAL_ID, params):
+        def flag(self, special_id, params):
             """https://developer.foursquare.com/docs/specials/flag"""
-            return self.POST('{SPECIAL_ID}/flag'.format(SPECIAL_ID=SPECIAL_ID), params)
-
+            return self.POST('{special_id}/flag'.format(special_id=special_id), params)
 
     class Events(_Endpoint):
         """Events specific endpoint"""
         endpoint = 'events'
 
-        def __call__(self, EVENT_ID, multi=False):
+        def __call__(self, event_id, multi=False):
             """https://developer.foursquare.com/docs/events/events"""
-            return self.GET('{EVENT_ID}'.format(EVENT_ID=EVENT_ID), multi=multi)
+            return self.GET('{event_id}'.format(event_id=event_id), multi=multi)
 
         def categories(self, multi=False):
             """https://developer.foursquare.com/docs/events/categories"""
@@ -725,26 +821,26 @@ class Foursquare(object):
             """https://developer.foursquare.com/docs/events/search"""
             return self.GET('search', params, multi=multi)
 
-
     class Pages(_Endpoint):
         """Pages specific endpoint"""
         endpoint = 'pages'
 
-        def __call__(self, USER_ID, multi=False):
+        def __call__(self, user_id, multi=False):
             """https://developer.foursquare.com/docs/pages/pages"""
-            return self.GET('{USER_ID}'.format(USER_ID=USER_ID), multi=multi)
+            return self.GET('{user_id}'.format(user_id=user_id), multi=multi)
 
-        def venues(self, PAGE_ID, params={}, multi=False):
+        def venues(self, page_id, params=None, multi=False):
             """https://developer.foursquare.com/docs/pages/venues"""
-            return self.GET('{PAGE_ID}/venues'.format(PAGE_ID=PAGE_ID), params, multi=multi)
-
+            if not params:
+                params = {}
+            return self.GET('{page_id}/venues'.format(page_id=page_id), params, multi=multi)
 
     class Multi(_Endpoint):
         """Multi request endpoint handler"""
         endpoint = 'multi'
 
         def __len__(self):
-          return len(self.requester.multi_requests)
+            return len(self.requester.multi_requests)
 
         def __call__(self):
             """
@@ -755,11 +851,11 @@ class Foursquare(object):
             """
             while self.requester.multi_requests:
                 # Pull n requests from the multi-request queue
-                requests = self.requester.multi_requests[:MAX_MULTI_REQUESTS]
-                del(self.requester.multi_requests[:MAX_MULTI_REQUESTS])
+                _requests = self.requester.multi_requests[:MAX_MULTI_REQUESTS]
+                del (self.requester.multi_requests[:MAX_MULTI_REQUESTS])
                 # Process the 4sq multi request
                 params = {
-                    'requests': ','.join(requests),
+                    'requests': ','.join(_requests),
                 }
                 responses = self.GET(params=params)['responses']
                 # ... and yield out each individual response
@@ -776,41 +872,54 @@ class Foursquare(object):
             """Returns the expected number of API calls to process"""
             return int(math.ceil(len(self.requester.multi_requests) / float(MAX_MULTI_REQUESTS)))
 
+
 def _log_and_raise_exception(msg, data, cls=FoursquareException):
-  """Calls log.error() then raises an exception of class cls"""
-  data = u'{0}'.format(data)
-  # We put data as a argument for log.error() so error tracking systems such
-  # as Sentry will properly group errors together by msg only
-  log.error(u'{0}: %s'.format(msg), data)
-  raise cls(u'{0}: {1}'.format(msg, data))
+    """Calls log.error() then raises an exception of class cls"""
+    data = u'{0}'.format(data)
+    # We put data as a argument for log.error() so error tracking systems such
+    # as Sentry will properly group errors together by msg only
+    log.error(u'{0}: %s'.format(msg), data)
+    raise cls(u'{0}: {1}'.format(msg, data))
+
 
 """
 Network helper functions
 """
-def _get(url, headers={}, params=None):
+
+
+def _get(url, headers=None, params=None):
     """Tries to GET data from an endpoint using retries"""
+    if not headers:
+        headers = {}
     param_string = _foursquare_urlencode(params)
     for i in xrange(NUM_REQUEST_RETRIES):
         try:
             try:
                 response = requests.get(url, headers=headers, params=param_string, verify=VERIFY_SSL)
+                pdb.set_trace()
                 return _process_response(response)
             except requests.exceptions.RequestException as e:
                 _log_and_raise_exception('Error connecting with foursquare API', e)
         except FoursquareException as e:
             # Some errors don't bear repeating
-            if e.__class__ in [InvalidAuth, ParamError, EndpointError, NotAuthorized, Deprecated]: raise
+            if e.__class__ in [InvalidAuth, ParamError, EndpointError, NotAuthorized, Deprecated]:
+                raise
             # If we've reached our last try, re-raise
-            if ((i + 1) == NUM_REQUEST_RETRIES): raise
+            if (i + 1) == NUM_REQUEST_RETRIES:
+                raise
         time.sleep(1)
 
-def _post(url, headers={}, data=None, files=None):
+
+def _post(url, headers=None, data=None, files=None):
     """Tries to POST data to an endpoint"""
+    if not headers:
+        headers = {}
     try:
         response = requests.post(url, headers=headers, data=data, files=files, verify=VERIFY_SSL)
         return _process_response(response)
     except requests.exceptions.RequestException as e:
         _log_and_raise_exception('Error connecting with foursquare API', e)
+
 
 def _process_response(response):
     """Make the request and handle exception processing"""
@@ -822,8 +931,9 @@ def _process_response(response):
 
     # Default case, Got proper response
     if response.status_code == 200:
-        return { 'headers': response.headers, 'data': data }
+        return {'headers': response.headers, 'data': data}
     return _raise_error_from_response(data)
+
 
 def _raise_error_from_response(data):
     """Processes the response data"""
@@ -832,7 +942,8 @@ def _raise_error_from_response(data):
     if meta:
         # Account for foursquare conflicts
         # see: https://developer.foursquare.com/overview/responses
-        if meta.get('code') in (200, 409): return data
+        if meta.get('code') in (200, 409):
+            return data
         exc = error_types.get(meta.get('errorType'))
         if exc:
             raise exc(meta.get('errorDetail'))
@@ -841,11 +952,13 @@ def _raise_error_from_response(data):
     else:
         _log_and_raise_exception('Response format invalid, missing meta property. data', data)
 
+
 def _as_utf8(s):
     try:
         return str(s)
     except UnicodeEncodeError:
-        return unicode(s).encode('utf8')
+        return s.encode('utf8')
+
 
 def _foursquare_urlencode(query, doseq=0, safe_chars="&/,+"):
     """Gnarly hack because Foursquare doesn't properly handle standard url encoding"""
@@ -853,10 +966,10 @@ def _foursquare_urlencode(query, doseq=0, safe_chars="&/,+"):
     # Works the same way as urllib.urlencode except two differences -
     # 1. it uses `quote()` instead of `quote_plus()`
     # 2. it takes an extra parameter called `safe_chars` which is a string
-    #    having the characters which should not be encoded.
+    # having the characters which should not be encoded.
     #
     # Courtesy of github.com/iambibhas
-    if hasattr(query,"items"):
+    if hasattr(query, "items"):
         # mapping objects
         query = query.items()
     else:
@@ -867,12 +980,12 @@ def _foursquare_urlencode(query, doseq=0, safe_chars="&/,+"):
             # non-empty strings will fail this
             if len(query) and not isinstance(query[0], tuple):
                 raise TypeError
-            # zero-length sequences of all types will get here and succeed,
-            # but that's a minor nit - since the original implementation
-            # allowed empty dicts that type of behavior probably should be
-            # preserved for consistency
+                # zero-length sequences of all types will get here and succeed,
+                # but that's a minor nit - since the original implementation
+                # allowed empty dicts that type of behavior probably should be
+                # preserved for consistency
         except TypeError:
-            ty,va,tb = sys.exc_info()
+            ty, va, tb = sys.exc_info()
             raise TypeError("not a valid non-string sequence or mapping object").with_traceback(tb)
 
     l = []

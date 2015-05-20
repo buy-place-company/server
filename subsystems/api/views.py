@@ -1,12 +1,15 @@
 import json
 import datetime
-from django.http import HttpResponse, Http404
+
+from django.http import HttpResponse
+
 from conf import secret
 from subsystems.db.model_user import User
 from subsystems.db.model_venue import Venue
 from subsystems.db.model_zone import Zone
-from subsystems.foursquare.foursquare_api import ServerError, Foursquare
+from subsystems.foursquare.utils.foursquare_api import ServerError, Foursquare
 from conf.settings_game import ORDER_BY, DEFAULT_CATEGORIES, DUTY
+
 LONG = 10.1
 ERRORS = {
     '1': {'status': 401, 'message': 'unauthorized access'},
