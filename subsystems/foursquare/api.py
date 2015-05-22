@@ -1,8 +1,7 @@
 import re
 from conf import secret
 from conf.settings_game import DEFAULT_CATEGORIES
-from subsystems.db.model_venue import VenueMock, Venue
-from subsystems.db.model_zone import ZoneMock
+from subsystems.db.model_venue import  Venue
 from subsystems.foursquare.utils.foursquare_api import Foursquare, FoursquareException
 
 __author__ = 'Ruslan'
