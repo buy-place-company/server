@@ -3,6 +3,7 @@ import datetime
 import urllib.request
 from django.http import HttpResponse
 from conf import secret
+from subsystems.db.manager_zone import ZoneManager
 from subsystems.db.model_user import User
 from subsystems.db.model_venue import Venue
 from subsystems.db.model_zone import Zone
@@ -117,23 +118,18 @@ class VenueView():
 def objects_near(request):
     #if not request.user.is_authenticated():
     #    return HttpResponse(json.dumps(ERRORS['1']))
-    lat = request.GET.get("lat", None)
-    lng = request.GET.get("lng", None)
+    lat = float(request.GET.get("lat", None))
+    lng = float(request.GET.get("lng", None))
 
     if lat is None or lng is None:
         return HttpResponse(json.dumps(ERRORS['2']))
 
     try:
-        zone_db = Zone.get_by_point()
+        zone_db = Zone.objects.get_by_point(lat, lng)
     except Zone.DoesNotExist:
         return HttpResponse(json.dumps(ERRORS['3']))
 
-    if not zone_db.list_id:
-        list_id = zone_db.list_id
-    else:
-        list_id = None
-
-    objs = zone.venues()
+    objs = FoursquareAPI.get_venues_from_list(zone_db)
     if objs is not None:
         return HttpResponse(json.dumps({'status': 200, 'objects': objs}, ensure_ascii=False))
     else:
@@ -234,17 +230,13 @@ def auth_vk(request):
 
 def point_obj(request):
     try:
-        lat = int(request.GET['lat'])
-        lng = int(request.GET['lng'])
+        lat = float(request.GET['lat'])
+        lng = float(request.GET['lng'])
     except Exception as e:
         raise e
 
     venues = []
     for z in Zone.objects.get_by_point(lat, lng):
-        if z.list_id:
-            FoursquareAPI.update_zone(z)
-        else:
-            FoursquareAPI.new_zone_list(z)
         for v in Venue.objects.filter(list_id=z.list_id):
             venues.append({
                 'id': v.id

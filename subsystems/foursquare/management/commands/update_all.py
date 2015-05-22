@@ -3,6 +3,7 @@ from django.core.management import BaseCommand
 # from subsystems.db.model_venue import Venue
 # from subsystems.db.model_zone import Zone
 import os
+from subsystems.db.model_zone import Zone
 from subsystems.foursquare.api import FoursquareAPI
 
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "conf.settings")
@@ -30,4 +31,4 @@ class Command(BaseCommand):
         ne_lng = 37.40
         # print(client.users.lists())
         FoursquareAPI.get_venue(id='502df9f2e4b047ef99bfe423')
-        FoursquareAPI.new_zone(sw_lat, sw_lng, ne_lat, ne_lng)
+        FoursquareAPI.new_zone_list(Zone.objects.get_small((sw_lat + ne_lat) /2, (sw_lng + ne_lng)/2))
