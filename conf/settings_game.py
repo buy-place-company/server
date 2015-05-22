@@ -10,3 +10,6 @@ ORDER_BY = {
     'spent': 'money_payed_amount',
     'cache': 'money_amount'
 }
+
+ZONE_LNG_STEP = 10
+ZONE_LAT_STEP = 10

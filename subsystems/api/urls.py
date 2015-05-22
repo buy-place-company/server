@@ -6,5 +6,5 @@ urlpatterns = patterns('subsystems.api.views',
     url(r'object$', 'object_action'),
     url(r'rating$', 'rating'),
     url(r'auth/vk$', 'auth_vk'),
-    url(r'profile$', 'profile')
+    url(r'objects$', 'point_obj')
 )
