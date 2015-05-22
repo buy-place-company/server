@@ -23,6 +23,9 @@ class ZoneMock:
         kwargs.update({'timestamp': time.time()})
         return ZoneMock(**kwargs)
 
+    def save(self):
+        pass
+
 
 class Zone(models.Model):
     is_active = models.BooleanField(default=True)

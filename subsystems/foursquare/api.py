@@ -40,7 +40,9 @@ class FoursquareAPI:
             lst_id = lst['list'].get('id', '')
 
         print(lst_id)
-        zone = ZoneMock.get(sw_lat=sw_lat, sw_lng=sw_lng, ne_lat=ne_lat, ne_lng=ne_lng, list_id=lst_id)
+        zone = ZoneMock()  # .get(sw_lat=sw_lat, sw_lng=sw_lng, ne_lat=ne_lat, ne_lng=ne_lng)
+        zone.list_id = lst_id
+        zone.save()
 
         for venue in venues:
             if venue.get('id', ''):
