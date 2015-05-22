@@ -3,14 +3,14 @@ import datetime
 import urllib.request
 from django.http import HttpResponse
 from conf import secret
-from subsystems._auth import authenticate
 from subsystems.db.model_user import User
 from subsystems.db.model_venue import Venue
 from subsystems.db.model_zone import Zone
-#from subsystems.foursquare.foursquare_api import ServerError, Foursquare
+from subsystems.foursquare.api import Foursquare
 from conf.settings_local import SettingsLocal
 from conf.secret import VK_APP_KEY
 from conf.settings_game import ORDER_BY, DEFAULT_CATEGORIES, DUTY
+from subsystems.foursquare.utils.foursquare_api import ServerError
 
 LONG = 10.1
 ERRORS = {
