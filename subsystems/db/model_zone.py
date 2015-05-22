@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 import time
 from django.db import models
+from subsystems.db.manager_zone import ZoneManager
 from subsystems.db.model_venue import VenueMock
 
 

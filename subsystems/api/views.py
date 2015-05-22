@@ -124,18 +124,14 @@ def objects_near(request):
         return HttpResponse(json.dumps(ERRORS['2']))
 
     try:
-        zone_db = Zone.objects.filter(sw_lat__lt=lat).filter(ne_lat__gt=lat)\
-                              .filter(sw_lng__lt=lng).filter(ne_lng__gt=lng).get()
+        zone_db = Zone.get_by_point()
     except Zone.DoesNotExist:
         return HttpResponse(json.dumps(ERRORS['3']))
 
     if not zone_db.list_id:
-        list_id = None
-    else:
         list_id = zone_db.list_id
-
-    zone = ZoneView(sw_lat=zone_db.sw_lat, sw_lng=zone_db.sw_lng,
-                    ne_lat=zone_db.ne_lat, ne_lng=zone_db.get.ne_lng, list_id=list_id)
+    else:
+        list_id = None
 
     objs = zone.venues()
     if objs is not None:
