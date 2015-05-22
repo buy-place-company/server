@@ -1,6 +1,7 @@
+import re
 from conf import secret
 from conf.settings_game import DEFAULT_CATEGORIES
-from subsystems.db.model_venue import VenueMock
+from subsystems.db.model_venue import VenueMock, Venue
 from subsystems.db.model_zone import ZoneMock
 from subsystems.foursquare.utils.foursquare_api import Foursquare, FoursquareException
 
@@ -15,6 +16,25 @@ class FoursquareAPI:
                                  redirect_uri=None)
         # user = client.users()
         self.client.set_access_token(secret.token)
+
+    @staticmethod
+    def venue_from_item(item, id):
+        venue_raw = item['venue']
+        try:
+            venue = Venue.objects.get(venue_id=id)
+        except Venue.DoesNotExist:
+            venue = Venue.objects.create(venue_id=id)
+        venue.lat = venue_raw['location']['lat']
+        venue.lng = venue_raw['location']['lng']
+        venue.checkin_count = venue_raw['stats']['checkinsCount']
+        venue.user_count = venue_raw['stats']['usersCount']
+        venue.tip_count = venue_raw['stats']['tipCount']
+        venue.name = re.sub(r'[^a-zа-яA-ZА-Я ]', "", venue_raw['name'])
+        venue.category = venue_raw['categories'][0]['pluralName']
+        # print(venue_raw['categories'][0])
+        #venue.category = venue_raw['category']
+        print("Added " + venue.name)
+        return venue
 
     @staticmethod
     def new_zone(sw_lat=None, sw_lng=None, ne_lat=None, ne_lng=None):
@@ -47,15 +67,25 @@ class FoursquareAPI:
         for venue in venues:
             if venue.get('id', ''):
                 item = FoursquareAPI.self.client.lists.additem(list_id=lst_id, params={'venueId': venue['id']})['item']
-                venue_raw = item['venue']
-                venue = VenueMock()
-                venue.lat = venue_raw['location']['lat']
-                venue.lng = venue_raw['location']['lng']
-                venue.stats['checkin_count'] = venue_raw['stats']['checkinsCount']
-                venue.stats['user_count'] = venue_raw['stats']['usersCount']
-                venue.stats['tip_count'] = venue_raw['stats']['tipCount']
-                venue.set_name(venue_raw['name'])
-                venue.id = item['id']
-                venue.save()
+                dbvenue = FoursquareAPI.venue_from_item(item, item['venue']['id'])
+                dbvenue.save()
 
         return zone
+
+    @staticmethod
+    def get_venue(id):
+        # try:
+        #     venue = Venue.objects.get(venue_id=id)
+        # except Venue.DoesNotExist:
+        #     venue = None
+        #
+        # if venue:
+        #     return venue
+        # else:
+            if not FoursquareAPI.self:
+                FoursquareAPI.self = FoursquareAPI()
+            item = FoursquareAPI.self.client.venues(venue_id=id)
+            venue = FoursquareAPI.venue_from_item(item, item['venue']['id'])
+            venue.save()
+            return venue
+

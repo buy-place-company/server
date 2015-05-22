@@ -21,11 +21,13 @@ class Command(BaseCommand):
                             redirect_uri=redirect_url)
         # user = client.users()
         client.set_access_token(secret.token)
-        print(client.lists(list_id='555f2c21498e177a57fd53d4'))
+        for item in client.lists(list_id='555f2c21498e177a57fd53d4')['list']['listItems']['items']:
+            print( item['venue']['id'])
         # print(client.lists.additem(list_id='552fc903498ed1f7e625c7ed', params={'venueId': '40a55d80f964a52020f31ee3'}))
         sw_lat = 55.40
         sw_lng = 37.37
         ne_lat = 55.46
         ne_lng = 37.40
         # print(client.users.lists())
+        FoursquareAPI.get_venue(id='502df9f2e4b047ef99bfe423')
         FoursquareAPI.new_zone(sw_lat, sw_lng, ne_lat, ne_lng)

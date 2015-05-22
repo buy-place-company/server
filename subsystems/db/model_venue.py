@@ -35,8 +35,8 @@ class Venue(models.Model):
     #system fields
     list_id = models.CharField(max_length=255)
     #to return
-    name = models.CharField(max_length=30)
-    id = models.CharField(max_length=255, primary_key=True)
+    name = models.CharField(max_length=255)
+    venue_id = models.CharField(max_length=255, primary_key=True)
     checkin_count = models.IntegerField(default=0)
     user_count = models.IntegerField(default=0)
     tip_count = models.IntegerField(default=0)
