@@ -238,7 +238,16 @@ def auth_vk(request):
 
 def point_obj(request):
     try:
-        lat = request.GET['lat']
-        lng = request.GET['lng']
+        lat = int(request.GET['lat'])
+        lng = int(request.GET['lng'])
     except Exception as e:
         raise e
+
+    venues = []
+    for z in Zone.objects.get_by_point(lat, lng):
+        for v in Venue.objects.filter(list_id=z.list_id):
+            venues.append({
+                'id': v.id
+            })
+
+    return HttpResponse(json.dumps(venues), content_type="application/json")
