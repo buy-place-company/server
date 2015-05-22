@@ -1,5 +1,7 @@
+import json
+import urllib.request
 from django.db import models
-from subsystems.auth import authenticate, login
+from subsystems._auth import authenticate, login
 
 
 class UserManager(models.Manager):
@@ -25,14 +27,30 @@ class UserManager(models.Manager):
         """
         Creates and saves a User with the given username, email and password.
         """
-        email = self.normalize_email(email)
+        if email is not None:
+            email = self.normalize_email(email)
         user = self.model(email=email, is_superuser=is_superuser, **extra_fields)
         user.set_password(password)
         user.save(using=self._db)
         return user
 
-    def login(self, request, email, password):
-        user = authenticate(email=email, password=password)
-        if user is not None:
-            login(request, user)
-            return user
+    def create_and_auth_vk(self, request, id_vk):
+        try:
+            user = self.get(id_vk=id_vk)
+        except:
+            url = \
+                "https://api.vk.com/method/users.get?" + \
+                "user_ids=%d&" % id_vk + \
+                "v=5.33"
+
+            conn = urllib.request.urlopen(url)
+            data = json.loads(conn.read().decode('utf_8'))['response']
+            name = '{0} {1}'.format(data[0]['first_name'], data[0]['last_name'])
+
+            user = self.create(id_vk=id_vk, name=name)
+            user.set_password("")
+            user.save()
+
+        user = authenticate(username=user.id, password="")
+        login(request, user)
+        return user

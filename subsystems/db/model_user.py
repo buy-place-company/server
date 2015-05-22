@@ -10,17 +10,19 @@ class User(models.Model):
 
     id = models.AutoField(primary_key=True)
 
-    password = models.CharField(max_length=128)
+    id_vk = models.IntegerField(null=True)
+
+    password = models.CharField(max_length=128, null=True)
     is_superuser = models.BooleanField(default=False)
 
-    email = models.EmailField(max_length=30, unique=True)
+    email = models.EmailField(max_length=30, unique=True, null=True)
     name = models.CharField(max_length=30)
 
     signup_date = models.DateField(auto_now_add=True)
 
     objects = UserManager()
 
-    USERNAME_FIELD = 'email'
+    USERNAME_FIELD = 'id'
 
     def is_authenticated(self):
         """

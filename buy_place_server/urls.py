@@ -3,5 +3,5 @@ import subsystems
 
 urlpatterns = patterns('',
     url(r'^test/', include(subsystems.test.urls)),
-    url(r'', include(subsystems.api.urls))
+    url(r'^', include(subsystems.api.urls))
 )

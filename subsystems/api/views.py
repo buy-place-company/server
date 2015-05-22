@@ -1,11 +1,15 @@
 import json
 import datetime
+import urllib.request
 from django.http import HttpResponse, Http404
 from conf import secret
+from subsystems._auth import authenticate
 from subsystems.db.model_user import User
 from subsystems.db.model_venue import Venue
 from subsystems.db.model_zone import Zone
 from subsystems.foursquare.foursquare_api import ServerError, Foursquare
+from conf.settings_local import SettingsLocal
+from conf.secret import VK_APP_KEY
 from conf.settings_game import ORDER_BY, DEFAULT_CATEGORIES, DUTY
 LONG = 10.1
 ERRORS = {
@@ -189,3 +193,45 @@ def rating(request):
     return HttpResponse(json.dumps({'status': 200, 'objects': users_to_return,
                                     'user': {'name': request.user.name, order_by: getattr(request.user, order_by),
                                              'pos': 2342352353452345234}}))
+
+
+def auth_vk(request):
+    code = request.GET['code']
+
+    url = \
+        "https://oauth.vk.com/access_token?" + \
+        "client_id=4927495&" + \
+        "client_secret=%s&" % VK_APP_KEY + \
+        "code=%s&" % code + \
+        "redirect_uri=%s" % SettingsLocal.AUTH_URL
+
+    try:
+        conn = urllib.request.urlopen(url)
+        data = json.loads(conn.read().decode('utf_8'))
+    except Exception as e:
+        raise e
+
+    if 'access_token' not in data or 'user_id' not in data:
+        # error
+        pass
+
+    try:
+        vk_user_id = int(data['user_id'])
+    except:
+        raise Exception('ahaha')
+
+    user = User.objects.create_and_auth_vk(request, vk_user_id)
+    return return_profile(user)
+
+
+def profile(request):
+    pass
+
+
+def return_profile(user):
+    data = {
+        'id': user.id,
+        'id_vk': user.id_vk,
+        'name': user.name
+    }
+    return HttpResponse(json.dumps(data), content_type="application/json")
