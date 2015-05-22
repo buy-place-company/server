@@ -77,8 +77,12 @@ class FoursquareAPI:
 
     @staticmethod
     def get_venues_from_list(zone):
+        venues = list()
         for item in FoursquareAPI.self.client.lists(list_id=zone.list_id)['list']['listItems']['items']:
             if item.get('id', ''):
                 dbvenue = FoursquareAPI.venue_from_item(item, item['venue']['id'])
                 dbvenue.save()
+                venues.append(dbvenue)
+
+        return venues
 
