@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 import time
 from django.db import models
+from subsystems.db.manager_zone import ZoneManager
 from subsystems.db.model_venue import VenueMock
 
 
@@ -32,6 +33,11 @@ class Zone(models.Model):
     sw_lng = models.FloatField(default=0)  # X axis
     ne_lat = models.FloatField(default=0)
     ne_lng = models.FloatField(default=0)
+
+    # lat >= sw_lat && lng >= sw_lng
+    # lat <= ne_lat && lng <= ne_lng
+
+    objects = ZoneManager()
 
     # делим зону на 2 зоны, причем старая становится неактивной,
     # а новые занимают ее место

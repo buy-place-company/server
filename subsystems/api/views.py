@@ -197,7 +197,13 @@ def rating(request):
 
 
 def auth_vk(request):
-    code = request.GET['code']
+    if request.method != "POST":
+        pass
+
+    try:
+        code = request.POST['code']
+    except:
+        pass
 
     url = \
         "https://oauth.vk.com/access_token?" + \
@@ -219,20 +225,20 @@ def auth_vk(request):
     try:
         vk_user_id = int(data['user_id'])
     except:
-        raise Exception('ahaha')
+        raise Exception('ahaha, lulz')
 
     user = User.objects.create_and_auth_vk(request, vk_user_id)
-    return return_profile(user)
-
-
-def profile(request):
-    pass
-
-
-def return_profile(user):
     data = {
         'id': user.id,
         'id_vk': user.id_vk,
         'name': user.name
     }
     return HttpResponse(json.dumps(data), content_type="application/json")
+
+
+def point_obj(request):
+    try:
+        lat = request.GET['lat']
+        lng = request.GET['lng']
+    except Exception as e:
+        raise e
