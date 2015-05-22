@@ -896,7 +896,6 @@ def _get(url, headers=None, params=None):
         try:
             try:
                 response = requests.get(url, headers=headers, params=param_string, verify=VERIFY_SSL)
-                pdb.set_trace()
                 return _process_response(response)
             except requests.exceptions.RequestException as e:
                 _log_and_raise_exception('Error connecting with foursquare API', e)

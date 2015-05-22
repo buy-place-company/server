@@ -1,11 +1,12 @@
 # -*- coding: utf-8 -*-
-import datetime
+import time
 from django.db import models
+from subsystems.db.model_venue import VenueMock
 
 
 class ZoneMock:
     def __init__(self, is_active=None, parent_id=None, list_id=None, timestamp=None,
-                 sw_lat=None, sw_lng=None, ne_lat=None, ne_lng=None):
+                 sw_lat=None, sw_lng=None, ne_lat=None, ne_lng=None, list_venues=None, **kwargs):
         self.is_active = is_active
         self.parent_id = parent_id
         self.list_id = list_id
@@ -14,10 +15,12 @@ class ZoneMock:
         self.sw_lng = sw_lng
         self.ne_lat = ne_lat
         self.ne_lng = ne_lng
+        self.list_venues = list_venues
 
-    def create(self, **kwargs):
-        for field, value in kwargs.items():
-            setattr(self, field, value)
+    @staticmethod
+    def create(**kwargs):
+        kwargs.update({'timestamp': time.time()})
+        return ZoneMock(**kwargs)
 
 
 class Zone(models.Model):
