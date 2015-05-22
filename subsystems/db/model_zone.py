@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+from datetime import datetime
 import time
 from django.db import models
 from subsystems.db.manager_zone import ZoneManager
@@ -41,6 +42,11 @@ class Zone(models.Model):
     # lat <= ne_lat && lng <= ne_lng
 
     objects = ZoneManager()
+
+    def update(self, list_id):
+        self.list_id = list_id
+        self.timestamp = datetime.now()
+        self.save()
 
     # делим зону на 2 зоны, причем старая становится неактивной,
     # а новые занимают ее место

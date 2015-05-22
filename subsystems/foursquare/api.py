@@ -56,8 +56,7 @@ class FoursquareAPI:
         else:
             lst_id = lst['list'].get('id', '')
 
-        zone.list_id = lst_id
-        zone.save()
+        zone.update(lst_id)
 
         for venue in venues:
             if venue.get('id', ''):
