@@ -31,7 +31,7 @@ class ZoneMock:
 class Zone(models.Model):
     is_active = models.BooleanField(default=True)
     parent_id = models.IntegerField(null=True, blank=True)
-    list_id = models.CharField(max_length=255)  # unique пока боком выходит
+    list_id = models.CharField(max_length=255, null=True)  # unique пока боком выходит
     timestamp = models.TimeField(verbose_name="timestamp", editable=False)
     sw_lat = models.FloatField(default=0)  # Y axis
     sw_lng = models.FloatField(default=0)  # X axis

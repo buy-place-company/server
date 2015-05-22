@@ -6,7 +6,7 @@ from conf import secret
 from subsystems.db.model_user import User
 from subsystems.db.model_venue import Venue
 from subsystems.db.model_zone import Zone
-from subsystems.foursquare.api import Foursquare
+from subsystems.foursquare.api import Foursquare, FoursquareAPI
 from conf.settings_local import SettingsLocal
 from conf.secret import VK_APP_KEY
 from conf.settings_game import ORDER_BY, DEFAULT_CATEGORIES, DUTY
@@ -241,6 +241,10 @@ def point_obj(request):
 
     venues = []
     for z in Zone.objects.get_by_point(lat, lng):
+        if z.list_id:
+            FoursquareAPI.update_zone(z)
+        else:
+            FoursquareAPI.new_zone_list(z)
         for v in Venue.objects.filter(list_id=z.list_id):
             venues.append({
                 'id': v.id

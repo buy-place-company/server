@@ -86,3 +86,6 @@ class FoursquareAPI:
 
         return venues
 
+    @staticmethod
+    def update_zone(zone):
+        return FoursquareAPI.get_venues_from_list(zone)
