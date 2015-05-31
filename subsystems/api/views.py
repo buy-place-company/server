@@ -13,7 +13,6 @@ from conf.secret import VK_APP_KEY
 from conf.settings_game import ORDER_BY, DEFAULT_CATEGORIES, DUTY
 from subsystems.foursquare.utils.foursquare_api import ServerError
 
-LONG = 10.1
 ERRORS = {
     '1': {'status': 401, 'message': 'unauthorized access'},
     '2': {'status': 101, 'message': 'not enough args: lat and lng'},
@@ -115,7 +114,7 @@ class VenueView():
             return False
 
 
-def objects_near(request):
+def objects(request):
     lat = request.GET.get("lat", None)
     lng = request.GET.get("lng", None)
 

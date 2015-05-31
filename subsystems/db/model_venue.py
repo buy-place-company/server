@@ -51,7 +51,7 @@ class Venue(models.Model):
                 "expense": self.expense,
                 "loot": self.loot,
                 "income": self.income,
-                "consumption": self.consumption
+                "consumption": self.consumption,
             })
         if self.owner is None:
             response.update({"buy_price": self.npc_buy_price})

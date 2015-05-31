@@ -45,7 +45,7 @@ class User(models.Model):
     score = models.IntegerField(default=0)
     avatar = models.URLField()
     # private
-    cache = models.IntegerField(default=0)
+    cash = models.IntegerField(default=0)
 
     def serialize(self, is_public=True):
         response = {
@@ -66,7 +66,7 @@ class User(models.Model):
 
     @property
     def score(self):
-        return self.cache
+        return self.cash
 
     @property
     def max_objects(self):
