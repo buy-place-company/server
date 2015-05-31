@@ -84,4 +84,4 @@ class Venue(models.Model):
 
     @property
     def consumption(self):
-        return BASE_INCOME * (1.1 ** (self.lvl - 1))
+        return BASE_INCOME * (1.1 ** (self.lvl - 1)) - BASE_INCOME / 2
