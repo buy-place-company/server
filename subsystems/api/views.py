@@ -131,7 +131,7 @@ def objects(request):
 
     objs = FoursquareAPI.get_venues_from_zone(zone_db)
     if objs is not None:
-        return JSONResponse.serialize(objs, {"status": 200})
+        return JSONResponse.serialize(objs, aas='places', status=200)
     else:
         return HttpResponse(json.dumps(ERRORS['4']))
 

@@ -38,7 +38,7 @@ class Venue(models.Model):
             "name": self.name,
             "category": self.category,
             "lvl": self.lvl,
-            "owner": self.owner.serialize(),
+            "owner": self.owner.serialize() if self.owner else None,
             "latitude": self.lat,
             "longitude": self.lng,
         }

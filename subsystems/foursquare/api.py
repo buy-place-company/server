@@ -1,3 +1,4 @@
+from datetime import datetime
 import re
 from conf import secret
 from conf.settings_game import DEFAULT_CATEGORIES
@@ -30,7 +31,7 @@ class FoursquareAPI:
         venue.tip_count = venue_raw['stats']['tipCount']
         venue.name = re.sub(r'[^a-zа-яA-ZА-Я ]', "", venue_raw['name'])
         # TODO: список категорий
-        venue.category = venue_raw['categories'][0]['Name']
+        venue.category = venue_raw['categories'][0]['name']
         print("Added " + venue.name)
         return venue
 
@@ -39,15 +40,19 @@ class FoursquareAPI:
         if FoursquareAPI.self is None:
             FoursquareAPI.self = FoursquareAPI()
 
-        venues = FoursquareAPI.self.client.venues.search(
-            params={"intent": "browse", "sw": "%F,%F" % (zone.sw_lat, zone.sw_lng),
-                    "ne": "%F,%F" % (zone.ne_lat, zone.ne_lng),
-                    "categoryId": DEFAULT_CATEGORIES})['venues']
+        try:
+            venues = FoursquareAPI.self.client.venues.search(
+                params={"intent": "browse", "sw": "%F,%F" % (zone.sw_lat, zone.sw_lng),
+                        "ne": "%F,%F" % (zone.ne_lat, zone.ne_lng),
+                        "categoryId": DEFAULT_CATEGORIES})['venues']
+        except FoursquareException as e:
+            print(e)
+            return None
         try:
             lst = FoursquareAPI.self.client.lists.add(
                 {'name': 'sw{0:.3}_{1:.3}_ne{2:.3}_{3:.3}'.format(zone.sw_lat, zone.sw_lng, zone.ne_lat, zone.ne_lng)})
-        except FoursquareException:
-            print("Zone with such corrds exists already")
+        except FoursquareException as e:
+            print(e)
             return None
 
         if not lst['list'].get('id', ''):
@@ -62,6 +67,7 @@ class FoursquareAPI:
             if venue.get('id', ''):
                 item = FoursquareAPI.self.client.lists.additem(list_id=lst_id, params={'venueId': venue['id']})['item']
                 dbvenue = FoursquareAPI.venue_from_item(item, item['venue']['id'])
+                dbvenue.list_id = zone.id
                 dbvenue.save()
 
         return zone
@@ -80,14 +86,19 @@ class FoursquareAPI:
         if not FoursquareAPI.self:
             FoursquareAPI.self = FoursquareAPI()
 
+        if zone.timestamp >= datetime.now().time():
+            return list(Venue.objects.filter(list_id=zone.id))
+
         if not zone.list_id:
             FoursquareAPI.update_zone(zone)
-            return Venue.objects.filter(list_id=zone.id)
+            return list(Venue.objects.filter(list_id=zone.id))
 
         venues = list()
-        for item in FoursquareAPI.self.client.lists(list_id=zone.list_id)['list']['listItems']['items']:
+        fv = FoursquareAPI.self.client.lists(list_id=zone.list_id)['list']['listItems']['items']
+        for item in fv:
             if item.get('id', ''):
                 dbvenue = FoursquareAPI.venue_from_item(item, item['venue']['id'])
+                dbvenue.list_id = zone.id
                 dbvenue.save()
                 venues.append(dbvenue)
 
