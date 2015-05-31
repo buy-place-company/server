@@ -7,22 +7,16 @@ from .manager_user import UserManager
 
 class User(models.Model):
     # ========== user auth information ==========
-
     id = models.AutoField(primary_key=True)
-
     id_vk = models.IntegerField(null=True)
-
     password = models.CharField(max_length=128, null=True)
     is_superuser = models.BooleanField(default=False)
-
     email = models.EmailField(max_length=30, unique=True, null=True)
     name = models.CharField(max_length=30)
-
     signup_date = models.DateField(auto_now_add=True)
+    USERNAME_FIELD = 'id'
 
     objects = UserManager()
-
-    USERNAME_FIELD = 'id'
 
     def is_authenticated(self):
         """
@@ -45,8 +39,12 @@ class User(models.Model):
         return check_password(raw_password, self.password, setter)
 
     # ========== user game information ==========
-
+    # public
     experience_count = models.BigIntegerField(default=0)
     money_payed_amount = models.BigIntegerField(default=0)
     money_amount = models.BigIntegerField(default=START_MONEY_AMOUNT)
     buildings_count = models.SmallIntegerField(default=0)
+    score = models.IntegerField(default=0)
+    avatar = models.URLField()
+    # private
+    cache = models.IntegerField(default=0)
