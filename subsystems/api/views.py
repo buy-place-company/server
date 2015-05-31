@@ -3,6 +3,7 @@ import datetime
 import urllib.request
 from django.http import HttpResponse
 from conf import secret
+from subsystems.api.utils import JSONResponse
 from subsystems.db.model_user import User
 from subsystems.db.model_venue import Venue
 from subsystems.db.model_zone import Zone
@@ -131,7 +132,7 @@ def objects_near(request):
 
     objs = FoursquareAPI.get_venues_from_zone(zone_db)
     if objs is not None:
-        return HttpResponse(json.dumps({'status': 200, 'objects': objs}, ensure_ascii=False))
+        return JSONResponse.serialize(objs, {"status": 200})
     else:
         return HttpResponse(json.dumps(ERRORS['4']))
 

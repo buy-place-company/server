@@ -27,8 +27,8 @@ class Venue(models.Model):
     # private information
     loot = models.IntegerField(null=True)
 
-    def serialize(self):
-        return {
+    def serialize(self, is_public=True):
+        response = {
             "id": self.venue_id,
             "stats": {
                 "checkinsCount": self.checkin_count,
@@ -41,14 +41,20 @@ class Venue(models.Model):
             "owner": self.owner.serialize(),
             "latitude": self.lat,
             "longitude": self.lng,
-            "max_loot": self.max_loot,
-            "income": self.income,
-            "expense": self.expense,
-            "sell_price": self.npc_sell_price,
-            "buy_price": self.npc_buy_price,
-            "upgrade_price": self.upgrade_price,
-            "loot": self.loot if self.loot else 0
         }
+        if not is_public and self.owner is not None:
+            response.update({
+                "max_loot": self.max_loot,
+                "sell_price": self.npc_sell_price,
+                "buy_price": self.npc_buy_price,
+                "upgrade_price": self.upgrade_price,
+                "expense": self.expense,
+                "loot": self.loot if self.loot else 0,
+                "income": self.income,
+            })
+        if self.owner is None:
+            response.update({"buy_price": self.npc_buy_price})
+        return response
 
     @property
     def max_loot(self):
