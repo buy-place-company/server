@@ -11,5 +11,5 @@ ORDER_BY = {
     'cache': 'money_amount'
 }
 
-ZONE_LNG_STEP = 10
-ZONE_LAT_STEP = 10
+ZONE_LNG_STEP = 1
+ZONE_LAT_STEP = 1

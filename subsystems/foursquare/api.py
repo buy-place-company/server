@@ -30,12 +30,12 @@ class FoursquareAPI:
         venue.tip_count = venue_raw['stats']['tipCount']
         venue.name = re.sub(r'[^a-zа-яA-ZА-Я ]', "", venue_raw['name'])
         # TODO: список категорий
-        venue.category = venue_raw['categories'][0]['pluralName']
+        venue.category = venue_raw['categories'][0]['Name']
         print("Added " + venue.name)
         return venue
 
     @staticmethod
-    def new_zone_list(zone):
+    def update_zone(zone):
         if FoursquareAPI.self is None:
             FoursquareAPI.self = FoursquareAPI()
 
@@ -76,7 +76,14 @@ class FoursquareAPI:
         return venue
 
     @staticmethod
-    def get_venues_from_list(zone):
+    def get_venues_from_zone(zone):
+        if not FoursquareAPI.self:
+            FoursquareAPI.self = FoursquareAPI()
+
+        if not zone.list_id:
+            FoursquareAPI.update_zone(zone)
+            return Venue.objects.filter(list_id=zone.id)
+
         venues = list()
         for item in FoursquareAPI.self.client.lists(list_id=zone.list_id)['list']['listItems']['items']:
             if item.get('id', ''):
@@ -86,6 +93,3 @@ class FoursquareAPI:
 
         return venues
 
-    @staticmethod
-    def update_zone(zone):
-        return FoursquareAPI.get_venues_from_list(zone)

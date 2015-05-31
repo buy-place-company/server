@@ -2,37 +2,11 @@
 from django.db import models
 from .model_user import User
 import re
-
-
-#TODO: properties
-class VenueMock:
-    def __init__(self, **kwargs):
-        self.stats = {}
-        if kwargs.get('location', ""):
-            self.lat = kwargs['location']['lat']
-            self.lng = kwargs['location']['lng']
-        if kwargs.get('stats', ''):
-            self.stats = {'checkin_count': kwargs['stats']['checkinsCount'],
-                          'user_count': kwargs['stats']['usersCount'],
-                          'tip_count': kwargs['stats']['tipCount']}
-        if kwargs.get('name', ''):
-            self.name = re.sub(r'[^a-zа-яA-ZА-Я]', "", kwargs['name'])
-        if kwargs.get('id', ''):
-            self.id = kwargs['id']
-
-    def set_name(self, name):
-        self.name = re.sub(r'[^a-zа-яA-ZА-Я ]', "", name)
-
-    def save(self):
-        print(self.lat)
-        print(self.lng)
-        print(self.stats)
-        print(self.name)
-        print(self.id)
+from json import JSONEncoder
 
 
 class Venue(models.Model):
-    #system fields
+    # system fields
     list_id = models.CharField(max_length=255)
     #to return
     name = models.CharField(max_length=255)
@@ -45,3 +19,27 @@ class Venue(models.Model):
     lvl = models.IntegerField(default=0)
     owner = models.ForeignKey(User, null=True, blank=True)
     price = models.IntegerField(default=10000)
+
+    def serialize(self):
+        return {"id": self.venue_id,
+                "stats": {
+                    "checkinsCount": self.checkin_count,
+                    "usersCount": self.user_count,
+                    "tipCount": self.tip_count
+                },
+                "name": self.name,
+                "category": self.category,
+                "type": self.type,
+                "lvl": 10,
+                "owner": {},
+                "latitude": 44.4,
+                "longitude": 38.1,
+                "max_loot": 900,
+                "income": 12,
+                "expense": 15,
+                "buy_price": null,
+                "update_price": 1500,
+                "sell_price": 500,
+                "deal_price": 750,
+                "loot": 412
+                }

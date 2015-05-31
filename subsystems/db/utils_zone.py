@@ -3,12 +3,16 @@ from subsystems.db.model_zone import Zone
 
 
 def init_db(lat_step, lng_step):
-    for x in range(0, 360, lng_step):
-        for y in range(-90, 90, lat_step):
+    x = 0
+    while x < 360:
+        y = -90
+        while y < 90:
             Zone.objects.create(
                 sw_lat=y,
                 sw_lng=x,
-                ne_lat=y+lat_step,
-                ne_lng=x+lng_step,
+                ne_lat=round(y+lat_step, 1),
+                ne_lng=round(x+lng_step, 1),
                 timestamp=datetime.datetime.now()
             )
+            y += lng_step
+        x += lat_step

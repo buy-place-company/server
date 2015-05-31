@@ -31,4 +31,4 @@ class Command(BaseCommand):
         ne_lng = 37.40
         # print(client.users.lists())
         FoursquareAPI.get_venue(id='502df9f2e4b047ef99bfe423')
-        FoursquareAPI.new_zone_list(Zone.objects.get_small((sw_lat + ne_lat) /2, (sw_lng + ne_lng)/2))
+        FoursquareAPI.update_zone(Zone.objects.get_small((sw_lat + ne_lat) / 2, (sw_lng + ne_lng) / 2))
