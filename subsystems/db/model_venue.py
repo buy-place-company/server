@@ -49,7 +49,7 @@ class Venue(models.Model):
                 "buy_price": self.npc_buy_price,
                 "upgrade_price": self.upgrade_price,
                 "expense": self.expense,
-                "loot": self.loot if self.loot else 0,
+                "loot": self.loot,
                 "income": self.income,
             })
         if self.owner is None:
