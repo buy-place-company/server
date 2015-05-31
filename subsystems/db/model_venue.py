@@ -51,6 +51,7 @@ class Venue(models.Model):
                 "expense": self.expense,
                 "loot": self.loot,
                 "income": self.income,
+                "consumption": self.consumption
             })
         if self.owner is None:
             response.update({"buy_price": self.npc_buy_price})
@@ -80,3 +81,7 @@ class Venue(models.Model):
     @property
     def upgrade_price(self):
         return BASE_COST*(1.5 ** (self.lvl - 1))
+
+    @property
+    def consumption(self):
+        return BASE_INCOME * (1.1 ** (self.lvl - 1))
