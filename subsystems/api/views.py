@@ -195,7 +195,7 @@ def auth_vk(request):
         pass
 
     url = \
-        "http://oauth.vk.com/access_token?" + \
+        "https://oauth.vk.com/access_token?" + \
         "client_id=4927495&" + \
         "client_secret=%s&" % VK_APP_KEY + \
         "code=%s&" % code + \
