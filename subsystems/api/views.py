@@ -189,11 +189,8 @@ def rating(request):
 
 
 def auth_vk(request):
-    if request.method != "POST":
-        pass
-
     try:
-        code = request.POST['code']
+        code = request.GET['code']
     except:
         pass
 
