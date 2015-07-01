@@ -195,18 +195,16 @@ def auth_vk(request):
         pass
 
     url = \
-        "https://oauth.vk.com/access_token?" + \
+        "http://oauth.vk.com/access_token?" + \
         "client_id=4927495&" + \
         "client_secret=%s&" % VK_APP_KEY + \
         "code=%s&" % code + \
-        "redirect_uri=%s" % SettingsLocal.AUTH_URL
-    print url
+        "redirect_uri=%s" % SettingsLocal.DOMAIN
+    
     try:
         conn = urllib.request.urlopen(url)
         data = json.loads(conn.read().decode('utf_8'))
-        print data
     except Exception as e:
-        print e
         raise e
 
     if 'access_token' not in data or 'user_id' not in data:
