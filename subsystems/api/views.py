@@ -115,8 +115,11 @@ class VenueView():
 
 
 def objects(request):
-    lat = request.GET.get("lat", None)
-    lng = request.GET.get("lng", None)
+    try:
+        lat = request.GET.get("lat", None)
+        lng = request.GET.get("lng", None)
+    except ValueError:
+        return HttpResponse(json.dumps(ERRORS['9']))
 
     if lat is None or lng is None:
         return HttpResponse(json.dumps(ERRORS['2']))

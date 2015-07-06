@@ -53,6 +53,7 @@ class Venue(models.Model):
                 "income": self.income,
                 "consumption": self.consumption,
             })
+
         if self.owner is None:
             response.update({"buy_price": self.npc_buy_price})
         return response
