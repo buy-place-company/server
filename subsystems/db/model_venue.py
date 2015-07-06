@@ -39,23 +39,23 @@ class Venue(models.Model):
             "category": self.category,
             "lvl": self.lvl,
             "owner": self.owner.serialize() if self.owner else None,
-            "latitude": self.lat,
-            "longitude": self.lng,
+            "latitude": round(self.lat, 3),
+            "longitude": round(self.lng, 3),
         }
         if not is_public and self.owner is not None:
             response.update({
-                "max_loot": self.max_loot,
-                "sell_price": self.npc_sell_price,
-                "buy_price": self.npc_buy_price,
-                "upgrade_price": self.upgrade_price,
+                "max_loot": round(self.max_loot, 1),
+                "sell_price": round(self.npc_sell_price, 1),
+                "buy_price": round(self.npc_buy_price, 1),
+                "upgrade_price": round(self.upgrade_price, 1),
                 "expense": self.expense,
                 "loot": self.loot,
                 "income": self.income,
-                "consumption": self.consumption,
+                "consumption": self.consumption
             })
 
         if self.owner is None:
-            response.update({"buy_price": self.npc_buy_price})
+            response.update({"buy_price": round(self.npc_buy_price, 1)})
         return response
 
     @property

@@ -6,7 +6,7 @@ class JSONResponse:
     @staticmethod
     def serialize(o, **kwargs):
         is_public = kwargs.pop('public', True)
-        aas = kwargs.pop('as', 'data')
+        aas = kwargs.pop('aas', 'data')
         if isinstance(o, dict):
             d = o.copy()
             d.update(kwargs)

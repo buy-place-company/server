@@ -1,11 +1,11 @@
-from datetime import datetime
+from datetime import datetime, timedelta
+import logging
 import re
 from conf import secret
 from conf.settings_game import DEFAULT_CATEGORIES
-from subsystems.db.model_venue import  Venue
+from subsystems.db.model_venue import Venue
 from subsystems.foursquare.utils.foursquare_api import Foursquare, FoursquareException
-
-__author__ = 'Ruslan'
+logger = logging.getLogger(__name__)
 
 
 class FoursquareAPI:
@@ -32,7 +32,7 @@ class FoursquareAPI:
         venue.name = re.sub(r'[^a-zа-яA-ZА-Я ]', "", venue_raw['name'])
         # TODO: список категорий
         venue.category = venue_raw['categories'][0]['name']
-        print("Added " + venue.name)
+        # print("Added " + venue.name)
         return venue
 
     @staticmethod
@@ -46,17 +46,17 @@ class FoursquareAPI:
                         "ne": "%F,%F" % (zone.ne_lat, zone.ne_lng),
                         "categoryId": DEFAULT_CATEGORIES})['venues']
         except FoursquareException as e:
-            print(e)
+            logging.warning("[4SK] " + str(e))
             return None
         try:
             lst = FoursquareAPI.self.client.lists.add(
                 {'name': 'sw{0:.3}_{1:.3}_ne{2:.3}_{3:.3}'.format(zone.sw_lat, zone.sw_lng, zone.ne_lat, zone.ne_lng)})
         except FoursquareException as e:
-            print(e)
+            logging.warning("[4SK] " + str(e))
             return None
 
         if not lst['list'].get('id', ''):
-            print("No list created")
+            logging.warning("[4SK] " + "No such list on 4sk")
             return None
         else:
             lst_id = lst['list'].get('id', '')
@@ -83,24 +83,18 @@ class FoursquareAPI:
 
     @staticmethod
     def get_venues_from_zone(zone):
+        logger.info("\033[22;31m%s\033[0;0m" % "[ZONE] List for this zone doesnt exist.")
         if not FoursquareAPI.self:
             FoursquareAPI.self = FoursquareAPI()
 
-        if zone.timestamp >= datetime.now().time():
-            return list(Venue.objects.filter(list_id=zone.id))
+        if zone.timestamp + timedelta(hours=12).total_seconds() < datetime.now().timestamp():
+            logger.warning("[ZONE] Timestamp has expired. zid: %d" % zone.id)
+            FoursquareAPI.update_zone(zone)
 
         if not zone.list_id:
+            logger.warning("[ZONE] List for this zone doesnt exist.")
             FoursquareAPI.update_zone(zone)
-            return list(Venue.objects.filter(list_id=zone.id))
 
-        venues = list()
-        fv = FoursquareAPI.self.client.lists(list_id=zone.list_id)['list']['listItems']['items']
-        for item in fv:
-            if item.get('id', ''):
-                dbvenue = FoursquareAPI.venue_from_item(item, item['venue']['id'])
-                dbvenue.list_id = zone.id
-                dbvenue.save()
-                venues.append(dbvenue)
-
-        return venues
-
+        if zone.timestamp + timedelta(hours=12).total_seconds() >= datetime.now().timestamp():
+            lst = list(Venue.objects.filter(list_id=zone.id))
+            return lst

@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/1.7/ref/settings/
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 import os
 from .settings_local import *
+
 BASE_DIR = os.path.dirname(os.path.dirname(__file__) + "/../")
 from .settings_local import *
 
@@ -97,4 +98,40 @@ DATABASES = {
         'USER': SettingsLocal.DB_USER,
         'PASSWORD': SettingsLocal.DB_PASSWORD
     }
+}
+
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'formatters': {
+        'simple': {
+            'format': '%(levelname)s %(message)s'
+        },
+        'colored': {
+            '()': 'buy_place_server.utils.DjangoColorsFormatter',
+            'format': '%(levelname)s %(module)s %(message)s',
+        },
+    },
+    'handlers': {
+        'console': {
+            'level': 'DEBUG',
+            'class': 'logging.StreamHandler',
+            'formatter': 'colored'
+        },
+        'null': {
+            "class": 'django.utils.log.NullHandler',
+        }
+
+    },
+    'loggers': {
+        'django.request':{
+            'handlers': ['console'],
+            'propagate': True,
+            'level': 'DEBUG',
+        },
+        'subsystems.foursquare.api': {
+            'handlers': ['console'],
+            'level': "INFO",
+        },
+    },
 }

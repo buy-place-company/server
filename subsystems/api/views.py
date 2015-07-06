@@ -13,6 +13,7 @@ from conf.secret import VK_APP_KEY
 from conf.settings_game import ORDER_BY, DEFAULT_CATEGORIES, DUTY
 from subsystems.foursquare.utils.foursquare_api import ServerError
 
+
 ERRORS = {
     '1': {'status': 401, 'message': 'unauthorized access'},
     '2': {'status': 101, 'message': 'not enough args: lat and lng'},
@@ -27,7 +28,7 @@ ERRORS = {
 redirect_url = "http://yandex.ru"
 
 
-class ZoneView():
+class ZoneView:
     def __init__(self, sw_lat, sw_lng, ne_lat, ne_lng, list_id=None):
         self.list_id = list_id
         self.ne_lat = ne_lat
@@ -76,7 +77,7 @@ class ZoneView():
         Venue.objects.bulk_create(self.venues)
 
 
-class VenueView():
+class VenueView:
     def __init__(self, id):
         self.venue = Venue.objects.get(id=id)
 
@@ -135,6 +136,28 @@ def objects(request):
     objs = FoursquareAPI.get_venues_from_zone(zone_db)
     if objs is not None:
         return JSONResponse.serialize(objs, aas='places', status=200)
+    else:
+        return HttpResponse(json.dumps(ERRORS['4']))
+
+
+def obj(request):
+    try:
+        id = request.GET.get("id", None)
+    except ValueError:
+        return HttpResponse(json.dumps(ERRORS['9']))
+
+    if id is None:
+        return HttpResponse(json.dumps(ERRORS['9']))
+
+    try:
+        _obj = Venue.objects.get(pk=id)
+    except Venue.DoesNotExist:
+        return HttpResponse(json.dumps(ERRORS['3']))
+    except Venue.MultipleObjectsReturned:
+        return HttpResponse(json.dumps(ERRORS['8']))
+
+    if _obj is not None:
+        return JSONResponse.serialize(_obj, aas='places', status=200)
     else:
         return HttpResponse(json.dumps(ERRORS['4']))
 
