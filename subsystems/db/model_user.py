@@ -3,6 +3,31 @@ from django.db import models
 
 from .manager_user import UserManager
 
+EXP_MAP = [0, 68, 295, 805, 1716, 3154, 5249, 8136, 11955, 16851, 22973, 30475,
+           39516, 50261, 62876, 77537, 94421, 113712, 135596, 160266, 84495,
+           95074, 107905, 123472, 142427, 165669, 194509, 231086, 279822, 374430, 
+           209536, 248781, 296428, 354546, 425860, 514086, 624568, 765820, 954872, 
+           1312934, 376794, 570584, 702247, 864268, 1064437, 1313189, 1625260, 
+           2023672, 2553793, 3540654, 1628580, 2030288, 2525315, 3136966, 3895327, 
+           4840361, 6059118, 7618511, 9695807, 13539939, 7827912, 9820182, 12274327, 
+           15304458, 19055275, 23715366, 29732457, 37394453, 47531372, 55129381, 
+           47864070, 59155067, 73265903, 90895887, 112918193, 140457133, 175038441, 
+           224130847, 275229537, 374922035, 433175886, 519071722, 616520968, 732660914, 
+           867504463, 5906525385, 8207524971, 14341344002, 9969088216, 18392059298, 
+           22570174524, 27893873314, 34494700219, 42704220933, 52959289091, 100973118145, 
+           195410550016, 384956596063, 777809067883]
+
+def bsearch(arr, key):
+    left, right = 0, len(arr) - 1
+    while left <= right:
+        mid = int((left + right) / 2)
+        if key < arr[mid]:
+            right = mid - 1
+        elif key > arr[mid]:
+            left = mid + 1
+        else:
+            return mid
+    return 0
 
 class User(models.Model):
     # ========== user auth information ==========
@@ -41,8 +66,8 @@ class User(models.Model):
     # public
     experience_count = models.BigIntegerField(default=0)
     buildings_count = models.SmallIntegerField(default=0)
-    score = models.IntegerField(default=0)
     avatar = models.URLField()
+    score = models.IntegerField(default=0)
     # private
     cash = models.IntegerField(default=0)
 
@@ -55,18 +80,19 @@ class User(models.Model):
             "score": self.score,
             "objects_count": self.buildings_count,
             "max_objects": self.max_objects,
-            "experience": self.experience_count,
         }
 
         if not is_public:
             response.update({
-                "cache": 12,
+                "cash": self.cash,
             })
 
+        return response
+
     @property
-    def score(self):
-        return self.cash
+    def lvl(self):
+        return bsearch(EXP_MAP, int(self.score))
 
     @property
     def max_objects(self):
-        return self.lvl * 5 + round(1.3 ** self.lvl)
+        return int(self.lvl * 5 + round(1.3 ** self.lvl))

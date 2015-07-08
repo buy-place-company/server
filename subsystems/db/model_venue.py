@@ -56,6 +56,7 @@ class Venue(models.Model):
 
         if self.owner is None:
             response.update({"buy_price": round(self.npc_buy_price, 1)})
+
         return response
 
     @property

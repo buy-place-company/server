@@ -1,7 +1,9 @@
 import json
 import datetime
 import urllib.request
-from django.http import HttpResponse
+from django.http import HttpResponse, Http404
+from django.template.loader import render_to_string
+from django.views.decorators.csrf import csrf_exempt
 from conf import secret
 from subsystems.api.utils import JSONResponse
 from subsystems.db.model_user import User
@@ -13,7 +15,6 @@ from conf.secret import VK_APP_KEY
 from conf.settings_game import ORDER_BY, DEFAULT_CATEGORIES, DUTY
 from subsystems.foursquare.utils.foursquare_api import ServerError
 
-
 ERRORS = {
     '1': {'status': 401, 'message': 'unauthorized access'},
     '2': {'status': 101, 'message': 'not enough args: lat and lng'},
@@ -23,10 +24,31 @@ ERRORS = {
     '6': {'status': 101, 'message': 'building id isnt specified'},
     '7': {'status': 302, 'message': 'no such building'},
     '8': {'status': 103, 'message': 'Smth wrong'},
-    '9': {'status': 104, 'message': 'Invalid param specified.'}
+    '9': {'status': 104, 'message': 'Invalid param specified.'},
+    '10': {'status': 105, 'message': '[VK] HTTP Error 401: Unauthorized'},
+    '11': {'status': 201, 'message': 'No money for action'},
+    '12': {'status': 202, 'message': 'The building has owner already'},
+    '13': {'status': 203, 'message': 'U have this building already'},
+    '14': {'status': 203, 'message': 'U dont have this building yet'},
 }
-redirect_url = "http://yandex.ru"
 
+
+class NoMoneyError(Exception):
+    pass
+
+class HasOwnerAlready(Exception):
+    pass
+
+class UHaveIt(Exception):
+    pass
+
+
+class UDontHaveIt(Exception):
+    pass
+
+
+redirect_url = "http://yandex.ru"
+# TODO: security!!!
 
 class ZoneView:
     def __init__(self, sw_lat, sw_lng, ne_lat, ne_lng, list_id=None):
@@ -78,43 +100,56 @@ class ZoneView:
 
 
 class VenueView:
-    def __init__(self, id):
-        self.venue = Venue.objects.get(id=id)
+    def __init__(self, venue_id):
+        self.venue = Venue.objects.get(venue_id=venue_id)
 
     def __getitem__(self, item):
         return self.venue.get(item)
 
     def buy(self, user):
-        if user.money_amount > self.venue.price and not self.venue.owner:
-            self.venue.owner = user.id
-            user.money_amount -= self.venue.price
-            user.money_payed_amount += self.venue.price
-            self.venue.save()
-            return True
-        else:
-            return False
+        if user.cash < self.venue.price:
+            raise NoMoneyError
+
+        if self.venue.owner == user:
+            raise UHaveIt
+
+        if self.venue.owner:
+            raise HasOwnerAlready
+
+        self.venue.owner = user
+        user.cash -= self.venue.price
+        user.score += self.venue.price
+        user.buildings_count += 1
+        user.save()
+        self.venue.save()
 
     def sell(self, user):
-        if self.venue.owner == user.id:
-            self.venue.owner = 0
-            user.money_amount += self.venue.price * (1 - DUTY)
-            user.money_payed_amount -= self.venue.price
-            self.venue.save()
-            return True
-        else:
-            return False
+        if self.venue.owner != user:
+            raise UDontHaveIt
+
+        self.venue.owner = None
+        user.cash += self.venue.price
+        user.score -= self.venue.price
+        user.buildings_count -= 1
+        user.save()
+        self.venue.save()
 
     def upgrade(self, user):
-        if self.venue.owner == user.id:
-            user.money_amount -= self.venue.price * (1 + self.venue.lvl ** 1.1) / (1 + self.venue.lvl)\
-                * (1 - DUTY)
-            user.money_payed_amount += self.venue.price
-            self.venue.save()
-            return True
-        else:
-            return False
+        price = self.venue.price * (1 + self.venue.lvl ** 1.1) / (1 + self.venue.lvl) * (1 - DUTY)
+
+        if self.venue.owner != user:
+            raise UDontHaveIt
+
+        if user.cash < price:
+            raise NoMoneyError
+
+        user.cash -= price
+        user.score += price
+        user.save()
+        self.venue.save()
 
 
+@csrf_exempt
 def objects(request):
     try:
         lat = request.GET.get("lat", None)
@@ -140,61 +175,84 @@ def objects(request):
         return HttpResponse(json.dumps(ERRORS['4']))
 
 
+@csrf_exempt
 def obj(request):
     try:
-        id = request.GET.get("id", None)
+        venue_id = request.GET.get("venue_id", None)
     except ValueError:
-        return HttpResponse(json.dumps(ERRORS['9']))
+        return HttpResponse(json.dumps(ERRORS['9']['message']))
 
-    if id is None:
-        return HttpResponse(json.dumps(ERRORS['9']))
+    if venue_id is None:
+        return HttpResponse(json.dumps(ERRORS['9']['message']))
 
     try:
-        _obj = Venue.objects.get(pk=id)
+        _obj = Venue.objects.get(venue_id=venue_id)
     except Venue.DoesNotExist:
-        return HttpResponse(json.dumps(ERRORS['3']))
+        return HttpResponse(json.dumps(ERRORS['3']['message']))
     except Venue.MultipleObjectsReturned:
-        return HttpResponse(json.dumps(ERRORS['8']))
+        return HttpResponse(json.dumps(ERRORS['8']['message']))
 
     if _obj is not None:
-        return JSONResponse.serialize(_obj, aas='places', status=200)
+        return JSONResponse.serialize(_obj, aas='objects', status=200)
     else:
-        return HttpResponse(json.dumps(ERRORS['4']))
+        return HttpResponse(json.dumps(ERRORS['4']['message']))
 
 
+@csrf_exempt
 def user_objects(request):
     if not request.user.is_authenticated():
         return HttpResponse(ERRORS['1'])
 
     objs = Venue.objects.filter(owner=request.user.id).values()
 
-    return HttpResponse(json.dumps({'status': 200, 'objects': objs}, ensure_ascii=False))
+    return JSONResponse.serialize(objs, aas='objects', status=200)
 
 
+@csrf_exempt
 def object_action(request):
+    for e in request.POST.items():
+        print(e)
+    if not request.user.is_authenticated():
+        return HttpResponse(json.dumps(ERRORS['1']))
+
+    action = request.POST.get('action', None)
+    venue_id = request.POST.get('venue_id', None)
+
+    if not action or not hasattr(VenueView, action):
+        return HttpResponse(json.dumps(ERRORS['5']))
+
+    if not venue_id:
+        return HttpResponse(json.dumps(ERRORS['6']))
+
+    try:
+        venue = VenueView(venue_id)
+    except Venue.DoesNotExists:
+        return HttpResponse(json.dumps(ERRORS['7']))
+
+    try:
+        getattr(venue, action)(request.user)
+    except NoMoneyError:
+        return HttpResponse(json.dumps(ERRORS['11']))
+    except HasOwnerAlready:
+        return HttpResponse(json.dumps(ERRORS['12']))
+    except UHaveIt:
+        return HttpResponse(json.dumps(ERRORS['13']))
+    except UDontHaveIt:
+        return HttpResponse(json.dumps(ERRORS['14']))
+
+    return HttpResponse(json.dumps({'status': 200, 'cash': request.user.cash}, ensure_ascii=False))
+
+
+
+@csrf_exempt
+def profile(request):
     if not request.user.is_authenticated():
         return HttpResponse(ERRORS['1'])
 
-    action = request.POST.get('action', None)
-    id = request.POST.get('id', None)
-
-    if not action or not hasattr(VenueView, action):
-        return HttpResponse(ERRORS['5'])
-
-    if not id:
-        return HttpResponse(ERRORS['6'])
-
-    try:
-        venue = VenueView(id)
-    except Venue.DoesNotExists as e:
-        return HttpResponse(json.dumps(ERRORS[7]))
-
-    if getattr(venue, action)():
-        return HttpResponse(json.dumps({'status': 200, 'cache': request.user.money_amount}, ensure_ascii=False))
-    else:
-        return HttpResponse(json.dumps(ERRORS['8'], ensure_ascii=False))
+    return JSONResponse.serialize(request.user, aas='user', status=200, public=False)
 
 
+@csrf_exempt
 # noinspection PyTypeChecker
 def rating(request):
     if not request.user.is_authenticated():
@@ -206,32 +264,33 @@ def rating(request):
     if order_by is None:
         return HttpResponse(ERRORS['9'])
 
-    users = User.objects.all().order_by("-" + order_by)[offset:offset+20]
+    users = User.objects.all().order_by("-" + order_by)[offset:offset + 20]
     users_to_return = [{'name': user.name, order_by: getattr(user, order_by)} for user in users]
 
-    return HttpResponse(json.dumps({'status': 200, 'objects': users_to_return,
+    return HttpResponse(json.dumps({'status': 200, 'users': users_to_return,
                                     'user': {'name': request.user.name, order_by: getattr(request.user, order_by),
                                              'pos': 2342352353452345234}}))
 
 
+@csrf_exempt
 def auth_vk(request):
     try:
         code = request.GET['code']
     except:
-        pass
+        raise Http404
 
     url = \
-        "http://oauth.vk.com/access_token?" + \
+        "https://oauth.vk.com/access_token?" + \
         "client_id=4927495&" + \
         "client_secret=%s&" % VK_APP_KEY + \
         "code=%s&" % code + \
         "redirect_uri=%s" % SettingsLocal.DOMAIN
-    
+
     try:
         conn = urllib.request.urlopen(url)
         data = json.loads(conn.read().decode('utf_8'))
     except Exception as e:
-        raise e
+        return HttpResponse(json.dumps(ERRORS['10']), content_type="application/json")
 
     if 'access_token' not in data or 'user_id' not in data:
         # error
@@ -251,18 +310,5 @@ def auth_vk(request):
     return HttpResponse(json.dumps(data), content_type="application/json")
 
 
-def point_obj(request):
-    try:
-        lat = float(request.GET['lat'])
-        lng = float(request.GET['lng'])
-    except Exception as e:
-        raise e
-
-    venues = []
-    for z in Zone.objects.get_by_point(lat, lng):
-        for v in Venue.objects.filter(list_id=z.list_id):
-            venues.append({
-                'id': v.id
-            })
-
-    return HttpResponse(json.dumps(venues), content_type="application/json")
+def test(request):
+    return HttpResponse(render_to_string("test.html", {}))

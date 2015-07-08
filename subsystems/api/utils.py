@@ -9,6 +9,7 @@ class JSONResponse:
         aas = kwargs.pop('aas', 'data')
         if isinstance(o, dict):
             d = o.copy()
+            d = {aas: d}
             d.update(kwargs)
             return HttpResponse(json.dumps(d, ensure_ascii=False))
         if isinstance(o, list):
@@ -19,5 +20,8 @@ class JSONResponse:
                 lst.append(json.dumps(d, ensure_ascii=False))
             a = "[" + ",".join(lst) + "]"
         else:
-            a = json.dumps(o.serialize(is_public).update(kwargs), ensure_ascii=False)
+            d = o.serialize(is_public)
+            d = {aas: d}
+            d.update(kwargs)
+            a = json.dumps(d, ensure_ascii=False)
         return HttpResponse(a)
