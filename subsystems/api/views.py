@@ -5,6 +5,7 @@ from django.http import HttpResponse, Http404
 from django.template.loader import render_to_string
 from django.views.decorators.csrf import csrf_exempt
 from conf import secret
+from subsystems.api.errors import GameError, NoMoneyError, HasOwnerAlready, UHaveIt, UDontHaveIt
 from subsystems.api.utils import JSONResponse
 from subsystems.db.model_user import User
 from subsystems.db.model_venue import Venue
@@ -15,40 +16,10 @@ from conf.secret import VK_APP_KEY
 from conf.settings_game import ORDER_BY, DEFAULT_CATEGORIES, DUTY
 from subsystems.foursquare.utils.foursquare_api import ServerError
 
-ERRORS = {
-    '1': {'status': 401, 'message': 'unauthorized access'},
-    '2': {'status': 101, 'message': 'not enough args: lat and lng'},
-    '3': {'status': 301, 'message': 'cant find zone at this coordinates'},
-    '4': {'status': 302, 'message': 'internal foursquare error'},
-    '5': {'status': 101, 'message': 'not enough args: action'},
-    '6': {'status': 101, 'message': 'building id isnt specified'},
-    '7': {'status': 302, 'message': 'no such building'},
-    '8': {'status': 103, 'message': 'Smth wrong'},
-    '9': {'status': 104, 'message': 'Invalid param specified.'},
-    '10': {'status': 105, 'message': '[VK] HTTP Error 401: Unauthorized'},
-    '11': {'status': 201, 'message': 'No money for action'},
-    '12': {'status': 202, 'message': 'The building has owner already'},
-    '13': {'status': 203, 'message': 'U have this building already'},
-    '14': {'status': 203, 'message': 'U dont have this building yet'},
-}
-
-
-class NoMoneyError(Exception):
-    pass
-
-class HasOwnerAlready(Exception):
-    pass
-
-class UHaveIt(Exception):
-    pass
-
-
-class UDontHaveIt(Exception):
-    pass
-
 
 redirect_url = "http://yandex.ru"
 # TODO: security!!!
+
 
 class ZoneView:
     def __init__(self, sw_lat, sw_lng, ne_lat, ne_lng, list_id=None):
@@ -155,10 +126,10 @@ def objects(request):
         lat = request.GET.get("lat", None)
         lng = request.GET.get("lng", None)
     except ValueError:
-        return HttpResponse(json.dumps(ERRORS['9']))
+        return GameError('9')
 
     if lat is None or lng is None:
-        return HttpResponse(json.dumps(ERRORS['2']))
+        return GameError('2')
 
     lat = float(lat)
     lng = float(lng)
@@ -166,13 +137,13 @@ def objects(request):
     try:
         zone_db = Zone.objects.get_small(lat, lng)
     except Zone.DoesNotExist:
-        return HttpResponse(json.dumps(ERRORS['3']))
+        return GameError('3')
 
     objs = FoursquareAPI.get_venues_from_zone(zone_db)
     if objs is not None:
         return JSONResponse.serialize(objs, aas='places', status=200)
     else:
-        return HttpResponse(json.dumps(ERRORS['4']))
+        return GameError('4')
 
 
 @csrf_exempt
@@ -180,89 +151,85 @@ def obj(request):
     try:
         venue_id = request.GET.get("venue_id", None)
     except ValueError:
-        return HttpResponse(json.dumps(ERRORS['9']['message']))
+        return GameError('9')
 
     if venue_id is None:
-        return HttpResponse(json.dumps(ERRORS['9']['message']))
+        return GameError('9')
 
     try:
         _obj = Venue.objects.get(venue_id=venue_id)
     except Venue.DoesNotExist:
-        return HttpResponse(json.dumps(ERRORS['3']['message']))
+        return GameError('3')
     except Venue.MultipleObjectsReturned:
-        return HttpResponse(json.dumps(ERRORS['8']['message']))
+        return GameError('8')
 
     if _obj is not None:
         return JSONResponse.serialize(_obj, aas='objects', status=200)
     else:
-        return HttpResponse(json.dumps(ERRORS['4']['message']))
+        return GameError('4')
 
 
 @csrf_exempt
 def user_objects(request):
     if not request.user.is_authenticated():
-        return HttpResponse(ERRORS['1'])
+        return GameError('1')
 
-    objs = Venue.objects.filter(owner=request.user.id).values()
-
-    return JSONResponse.serialize(objs, aas='objects', status=200)
+    objs = Venue.objects.filter(owner=request.user)
+    return JSONResponse.serialize(list(objs), aas='objects', status=200, public=False)
 
 
 @csrf_exempt
 def object_action(request):
-    for e in request.POST.items():
-        print(e)
     if not request.user.is_authenticated():
-        return HttpResponse(json.dumps(ERRORS['1']))
+        return GameError('1')
 
     action = request.POST.get('action', None)
     venue_id = request.POST.get('venue_id', None)
 
     if not action or not hasattr(VenueView, action):
-        return HttpResponse(json.dumps(ERRORS['5']))
+        return GameError('5')
 
     if not venue_id:
-        return HttpResponse(json.dumps(ERRORS['6']))
+        return GameError('6')
 
     try:
         venue = VenueView(venue_id)
     except Venue.DoesNotExists:
-        return HttpResponse(json.dumps(ERRORS['7']))
+        return GameError('7')
 
     try:
         getattr(venue, action)(request.user)
     except NoMoneyError:
-        return HttpResponse(json.dumps(ERRORS['11']))
+        return GameError('11')
     except HasOwnerAlready:
-        return HttpResponse(json.dumps(ERRORS['12']))
+        return GameError('12')
     except UHaveIt:
-        return HttpResponse(json.dumps(ERRORS['13']))
+        return GameError('13')
     except UDontHaveIt:
-        return HttpResponse(json.dumps(ERRORS['14']))
-
-    return HttpResponse(json.dumps({'status': 200, 'cash': request.user.cash}, ensure_ascii=False))
-
-
-
-@csrf_exempt
-def profile(request):
-    if not request.user.is_authenticated():
-        return HttpResponse(ERRORS['1'])
+        return GameError('14')
 
     return JSONResponse.serialize(request.user, aas='user', status=200, public=False)
 
 
 @csrf_exempt
+def profile(request):
+    if not request.user.is_authenticated():
+        return GameError('1')
+
+    return JSONResponse.serialize(request.user, aas='user', status=200, public=False)
+
+
 # noinspection PyTypeChecker
+@csrf_exempt
 def rating(request):
     if not request.user.is_authenticated():
-        return HttpResponse(ERRORS['1'])
+        return GameError('1')
 
     offset = request.GET.get('offset', 0)
     order_by = ORDER_BY.get(request.GET.get('param', 'exp'), None)
 
     if order_by is None:
-        return HttpResponse(ERRORS['9'])
+        return GameError('9')
 
     users = User.objects.all().order_by("-" + order_by)[offset:offset + 20]
     users_to_return = [{'name': user.name, order_by: getattr(user, order_by)} for user in users]
@@ -289,8 +256,8 @@ def auth_vk(request):
     try:
         conn = urllib.request.urlopen(url)
         data = json.loads(conn.read().decode('utf_8'))
-    except Exception as e:
-        return HttpResponse(json.dumps(ERRORS['10']), content_type="application/json")
+    except Exception:  # TODO: Too wide exception
+        return GameError('10')
 
     if 'access_token' not in data or 'user_id' not in data:
         # error

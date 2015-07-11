@@ -14,11 +14,12 @@ class JSONResponse:
             return HttpResponse(json.dumps(d, ensure_ascii=False))
         if isinstance(o, list):
             lst = []
+            d = {aas: []}
             for obj in o:
-                d = {aas: obj.serialize(is_public)}
+                d[aas].append(obj.serialize(is_public))
                 d.update(kwargs)
                 lst.append(json.dumps(d, ensure_ascii=False))
-            a = "[" + ",".join(lst) + "]"
+            a = json.dumps(json.dumps(d, ensure_ascii=False))
         else:
             d = o.serialize(is_public)
             d = {aas: d}

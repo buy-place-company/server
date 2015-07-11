@@ -1,9 +1,9 @@
 from django.contrib.auth.hashers import make_password, check_password
 from django.db import models
-
+import bisect
 from .manager_user import UserManager
 
-EXP_MAP = [0, 68, 295, 805, 1716, 3154, 5249, 8136, 11955, 16851, 22973, 30475,
+EXP_MAP = [68, 295, 805, 1716, 3154, 5249, 8136, 11955, 16851, 22973, 30475,
            39516, 50261, 62876, 77537, 94421, 113712, 135596, 160266, 84495,
            95074, 107905, 123472, 142427, 165669, 194509, 231086, 279822, 374430, 
            209536, 248781, 296428, 354546, 425860, 514086, 624568, 765820, 954872, 
@@ -16,18 +16,6 @@ EXP_MAP = [0, 68, 295, 805, 1716, 3154, 5249, 8136, 11955, 16851, 22973, 30475,
            867504463, 5906525385, 8207524971, 14341344002, 9969088216, 18392059298, 
            22570174524, 27893873314, 34494700219, 42704220933, 52959289091, 100973118145, 
            195410550016, 384956596063, 777809067883]
-
-def bsearch(arr, key):
-    left, right = 0, len(arr) - 1
-    while left <= right:
-        mid = int((left + right) / 2)
-        if key < arr[mid]:
-            right = mid - 1
-        elif key > arr[mid]:
-            left = mid + 1
-        else:
-            return mid
-    return 0
 
 class User(models.Model):
     # ========== user auth information ==========
@@ -91,8 +79,8 @@ class User(models.Model):
 
     @property
     def lvl(self):
-        return bsearch(EXP_MAP, int(self.score))
+        return bisect.bisect_right(EXP_MAP, int(self.score))
 
     @property
     def max_objects(self):
-        return int(self.lvl * 5 + round(1.3 ** self.lvl))
+        return 2 + int(self.lvl * 5 + round(1.3 ** self.lvl))
