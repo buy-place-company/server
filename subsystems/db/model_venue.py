@@ -109,14 +109,14 @@ class Venue(models.Model):
         div = now - update_time
         if self.owner:
             if self.owner.cash + self.income > self.consumption:
-                inc = round(self.income % 3600 * div - self.consumption)
+                inc = round((self.income - self.consumption) % 3600 * div)
                 if inc > 0:
                     if self.max_loot >= self.loot + inc:
                         self.loot += inc
                     else:
                         self.loot = self.max_loot
                 else:
-                    self.owner.cash = self.income % 3600 * TIME_DELTA - self.consumption
+                    self.owner.cash += inc
             else:
                 self.owner.cash = 0
             self.save()
