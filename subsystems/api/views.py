@@ -123,16 +123,10 @@ class VenueView:
 @csrf_exempt
 def objects(request):
     try:
-        lat = request.GET.get("lat", None)
-        lng = request.GET.get("lng", None)
-    except ValueError:
-        return GameError('9')
-
-    if lat is None or lng is None:
+        lat = float(request.GET["lat"])
+        lng = float(request.GET["lng"])
+    except:
         return GameError('2')
-
-    lat = float(lat)
-    lng = float(lng)
 
     try:
         zone_db = Zone.objects.get_small(lat, lng)

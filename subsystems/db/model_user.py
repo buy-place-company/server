@@ -23,8 +23,8 @@ class User(models.Model):
     id_vk = models.BigIntegerField(null=True)
     password = models.CharField(max_length=128, null=True)
     is_superuser = models.BooleanField(default=False)
-    email = models.EmailField(max_length=30, unique=True, null=True)
-    name = models.CharField(max_length=30)
+    email = models.EmailField(max_length=60, unique=True, null=True)
+    name = models.CharField(max_length=60)
     signup_date = models.DateField(auto_now_add=True)
     USERNAME_FIELD = 'id'
 

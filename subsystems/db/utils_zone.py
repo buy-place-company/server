@@ -12,7 +12,7 @@ def init_db(lat_step, lng_step):
                 sw_lng=x,
                 ne_lat=round(y+lat_step, 1),
                 ne_lng=round(x+lng_step, 1),
-                timestamp=datetime.datetime.now().timestamp()
+                timestamp=0
             )
             y += lng_step
         x += lat_step
