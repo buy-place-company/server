@@ -6,7 +6,7 @@ from conf.settings_game import DEFAULT_CATEGORIES
 from subsystems.db.model_venue import Venue
 from subsystems.foursquare.utils.foursquare_api import Foursquare, FoursquareException
 logger = logging.getLogger(__name__)
-
+UPDATE_ZONE_DELTA_TIME = 12
 
 class FoursquareAPI:
     self = None
@@ -87,7 +87,7 @@ class FoursquareAPI:
         if not FoursquareAPI.self:
             FoursquareAPI.self = FoursquareAPI()
 
-        if zone.timestamp + timedelta(hours=12).total_seconds() < datetime.now().timestamp():
+        if zone.timestamp + timedelta(hours=UPDATE_ZONE_DELTA_TIME).total_seconds() < datetime.now().timestamp():
             logger.warning("[ZONE] Timestamp has expired. zid: %d" % zone.id)
             FoursquareAPI.update_zone(zone)
 
@@ -95,6 +95,6 @@ class FoursquareAPI:
             logger.warning("[ZONE] List for this zone doesnt exist.")
             FoursquareAPI.update_zone(zone)
 
-        if zone.timestamp + timedelta(hours=12).total_seconds() >= datetime.now().timestamp():
+        if zone.timestamp + timedelta(hours=UPDATE_ZONE_DELTA_TIME).total_seconds() >= datetime.now().timestamp():
             lst = list(Venue.objects.filter(list_id=zone.id))
             return lst

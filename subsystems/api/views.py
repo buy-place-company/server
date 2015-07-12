@@ -65,7 +65,7 @@ class ZoneView:
 
     def save_venues(self):
         obj = Zone.objects.get('list_id', None)
-        obj.timestamp = datetime.datetime.now()
+        obj.timestamp = datetime.datetime.now().timestamp()
         obj.save()
         Venue.objects.bulk_create(self.venues)
 
@@ -174,7 +174,7 @@ def user_objects(request):
     if not request.user.is_authenticated():
         return GameError('1')
 
-    objs = Venue.objects.filter(owner=request.user)
+    objs = Venue.updatable.filter(owner=request.user)
     return JSONResponse.serialize(list(objs), aas='objects', status=200, public=False)
 
 
@@ -229,7 +229,7 @@ def rating(request):
     order_by = ORDER_BY.get(request.GET.get('param', 'exp'), None)
 
     if order_by is None:
-        return GameError('9')
+        order_by = 'cash'
 
     users = User.objects.all().order_by("-" + order_by)[offset:offset + 20]
     users_to_return = [{'name': user.name, order_by: getattr(user, order_by)} for user in users]

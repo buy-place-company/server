@@ -1,16 +1,27 @@
 # -*- coding: utf-8 -*-
+from datetime import timedelta, datetime
+
 from django.db import models
+
 from .model_user import User
-import re
-from json import JSONEncoder
 
 BASE_COST = 300
 BASE_INCOME = 100
+TIME_DELTA = 30
+
+class VenueManager(models.Manager):
+    def get_queryset(self):
+        set = super(VenueManager, self).get_queryset()
+        for obj in set:
+            if obj.last_update + timedelta(seconds=TIME_DELTA).total_seconds() <= datetime.now().timestamp():
+                obj.update()
+        return set
 
 
 class Venue(models.Model):
     # system fields
     list_id = models.CharField(max_length=255)
+    last_update = models.IntegerField(default=0)
     #to return
     name = models.CharField(max_length=255)
     venue_id = models.CharField(max_length=255, primary_key=True)
@@ -26,6 +37,10 @@ class Venue(models.Model):
 
     # private information
     loot = models.IntegerField(null=True)
+
+    # Managers
+    updatable = VenueManager()
+    objects = models.Manager()
 
     def serialize(self, is_public=True):
         response = {
@@ -49,7 +64,7 @@ class Venue(models.Model):
                 "buy_price": round(self.npc_buy_price, 1),
                 "upgrade_price": round(self.upgrade_price, 1),
                 "expense": self.expense,
-                "loot": self.loot,
+                "loot": self.loot or 0,
                 "income": self.income,
                 "consumption": self.consumption
             })
@@ -61,29 +76,51 @@ class Venue(models.Model):
 
     @property
     def max_loot(self):
-        return self.lvl ** 1.1
+        return round(3 * self.income * (1.1 ** self.lvl))
 
     @property
     def income(self):
-        return BASE_INCOME * self.lvl * (1.1 ** (self.lvl - 1))
+        return round(BASE_INCOME / 10 + BASE_INCOME * self.lvl * (1.1 ** (self.lvl - 1)) + 10 * self.checkin_count + self.user_count * 10)
 
     @property
     def npc_buy_price(self):
-        return self.expense * 1.1
+        return round(self.expense * 1.1)
 
     @property
     def npc_sell_price(self):
-        return self.expense * 0.9
+        return round(self.expense * 0.9)
 
     @property
     def expense(self):
         upgrades_price = BASE_COST * 2 * round(1.5 ** self.lvl)
-        return self.checkin_count * 10000 + self.user_count * 1000 + upgrades_price
+        return round(self.checkin_count * 1000 + self.user_count * 100 + upgrades_price + self.income * 24)
 
     @property
     def upgrade_price(self):
-        return BASE_COST*(1.5 ** (self.lvl - 1))
+        return round(BASE_COST*(1.5 ** (self.lvl - 1)))
 
     @property
     def consumption(self):
-        return BASE_INCOME * (1.1 ** (self.lvl - 1)) - BASE_INCOME / 2
+        return round(BASE_INCOME * (1.1 ** (self.lvl - 1)) - BASE_INCOME / 2)
+
+    def update(self):
+        update_time = self.last_update + timedelta(seconds=TIME_DELTA).total_seconds()
+        now = datetime.now().timestamp()
+        div = now - update_time
+        if self.owner:
+            if self.owner.cash + self.income > self.consumption:
+                inc = round(self.income % 3600 * div - self.consumption)
+                if inc > 0:
+                    if self.max_loot >= self.loot + inc:
+                        self.loot += inc
+                    else:
+                        self.loot = self.max_loot
+                else:
+                    self.owner.cash = self.income % 3600 * TIME_DELTA - self.consumption
+            else:
+                self.owner.cash = 0
+            self.save()
+
+    def save(self, *args, **kwargs):
+        self.last_update = datetime.now().timestamp()
+        super(Venue, self).save(*args, **kwargs)
