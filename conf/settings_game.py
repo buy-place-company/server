@@ -7,8 +7,7 @@ DUTY = 0.13
 
 ORDER_BY = {
     'exp': 'experience_count',
-    'spent': 'money_payed_amount',
-    'cache': 'money_amount'
+    'cash': 'cash'
 }
 
 ZONE_LNG_STEP = 1

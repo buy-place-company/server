@@ -232,11 +232,9 @@ def rating(request):
         return GameError('9')
 
     users = User.objects.all().order_by("-" + order_by)[offset:offset + 20]
-    users_to_return = [{'name': user.name, order_by: getattr(user, order_by)} for user in users]
-
-    return HttpResponse(json.dumps({'status': 200, 'users': users_to_return,
-                                    'user': {'name': request.user.name, order_by: getattr(request.user, order_by),
-                                             'pos': 2342352353452345234}}))
+    return JSONResponse.serialize(users, aas='users', status=200,
+                                  user={'name': request.user.name, order_by: getattr(request.user, order_by),
+                                        'pos': 2342352353452345234})
 
 
 @csrf_exempt

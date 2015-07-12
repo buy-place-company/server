@@ -1,4 +1,5 @@
 import json
+from django.db.models import QuerySet
 from django.http import HttpResponse
 
 
@@ -12,14 +13,12 @@ class JSONResponse:
             d = {aas: d}
             d.update(kwargs)
             return HttpResponse(json.dumps(d, ensure_ascii=False))
-        if isinstance(o, list):
-            lst = []
+        if isinstance(o, list) or isinstance(o, QuerySet):
             d = {aas: []}
             for obj in o:
                 d[aas].append(obj.serialize(is_public))
                 d.update(kwargs)
-                lst.append(json.dumps(d, ensure_ascii=False))
-            a = json.dumps(json.dumps(d, ensure_ascii=False))
+            a = json.dumps(d, ensure_ascii=False)
         else:
             d = o.serialize(is_public)
             d = {aas: d}
