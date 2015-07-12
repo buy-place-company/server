@@ -12,7 +12,7 @@ from subsystems.db.model_venue import Venue
 from subsystems.db.model_zone import Zone
 from subsystems.foursquare.api import Foursquare, FoursquareAPI
 from conf.settings_local import SettingsLocal
-from conf.secret import VK_APP_KEY
+from conf.secret import VK_APP_KEY, VK_APP_ID
 from conf.settings_game import ORDER_BY, DEFAULT_CATEGORIES, DUTY
 from subsystems.foursquare.utils.foursquare_api import ServerError
 
@@ -239,32 +239,26 @@ def rating(request):
 
 @csrf_exempt
 def auth_vk(request):
-    try:
-        code = request.GET['code']
-    except:
-        raise Http404
-
     url = \
         "https://oauth.vk.com/access_token?" + \
-        "client_id=4927495&" + \
+        "client_id=%s&" % VK_APP_ID + \
         "client_secret=%s&" % VK_APP_KEY + \
-        "code=%s&" % code + \
-        "redirect_uri=%s" % SettingsLocal.DOMAIN
+        "code=%s&" % request.GET.get('code', '') + \
+        "redirect_uri=%s" % SettingsLocal.AUTH_REDIRECT_URL
 
     try:
         conn = urllib.request.urlopen(url)
         data = json.loads(conn.read().decode('utf_8'))
-    except Exception:  # TODO: Too wide exception
+    except:
         return GameError('10')
 
     if 'access_token' not in data or 'user_id' not in data:
-        # error
-        pass
+        return GameError('10')
 
     try:
         vk_user_id = int(data['user_id'])
     except:
-        raise Exception('ahaha, lulz')
+        return GameError('10')
 
     user = User.objects.create_and_auth_vk(request, vk_user_id)
     data = {
