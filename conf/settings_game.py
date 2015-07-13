@@ -7,9 +7,15 @@ DUTY = 0.13
 
 ORDER_BY = {
     'exp': 'experience_count',
-    'spent': 'money_payed_amount',
-    'cache': 'money_amount'
+    'cash': 'cash'
 }
 
 ZONE_LNG_STEP = 1
 ZONE_LAT_STEP = 1
+
+DIV_ZONE_DAYS_COUNT = 7
+DIV_ZONE_AVG_COUNT = 100
+DIV_ZONE_MIN_SIZE = 0.01
+
+BORDERS_LAT = (-90, 90)
+BORDERS_LNG = (-180, 180)

@@ -4,26 +4,33 @@ from conf.settings_game import ZONE_LAT_STEP, ZONE_LNG_STEP
 
 class ZoneManager(models.Manager):
     @staticmethod
-    def __normalize_axis(value):
-        if value < 0:
-            return value + 360
-        if value >= 360:
-            return value - 360
-        return value
+    def __normalize_axis(lat, lng):
+        while lat >= 90 + 360:
+            lat -= 360
+        while lat <= -90 - 360:
+            lat += 360
 
-    def get_small(self, lat, lng):
+        if lat > 90:
+            lng += 180
+            lat = 180 - lat
+        elif lat < -90:
+            lng += 180
+            lat = 180 + lat
+
+        while lng < -180:
+            lng += 360
+        while lng >= 180:
+            lng -= 360
+
+        return lat, lng
+
+    def get_zone(self, lat, lng):
+        lat, lng = self.__normalize_axis(lat, lng)
+
         return self.get(
+            is_active=True,
             sw_lat__lt=lat,
-            ne_lat__gt=lat,
-            sw_lng__lte=lng,
+            ne_lat__gte=lat,
+            sw_lng__lt=lng,
             ne_lng__gte=lng
         )
-
-    def get_big(self, lat, lng):
-        zones = []
-        for i in range(-1, 1):
-            for j in range(-1, 1):
-                tmp_lat = self.__normalize_axis(lat + i*ZONE_LAT_STEP)
-                tmp_lng = self.__normalize_axis(lng + j*ZONE_LNG_STEP)
-                zones.append(self.get_small(tmp_lat, tmp_lng))
-        return zones

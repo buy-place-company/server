@@ -8,6 +8,7 @@ from subsystems.foursquare.utils.foursquare_api import Foursquare, FoursquareExc
 logger = logging.getLogger(__name__)
 UPDATE_ZONE_DELTA_TIME = 12
 
+
 class FoursquareAPI:
     self = None
 
@@ -95,6 +96,5 @@ class FoursquareAPI:
             logger.warning("[ZONE] List for this zone doesnt exist.")
             FoursquareAPI.update_zone(zone)
 
-        if zone.timestamp + timedelta(hours=UPDATE_ZONE_DELTA_TIME).total_seconds() >= datetime.now().timestamp():
-            lst = list(Venue.objects.filter(list_id=zone.id))
-            return lst
+        lst = list(Venue.objects.filter(list_id=zone.id))
+        return lst
