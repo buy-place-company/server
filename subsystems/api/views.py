@@ -33,10 +33,6 @@ def zone_venues(request):
         venues.extend(FoursquareAPI.get_venues_from_zone(z))
 
     return JSONResponse.serialize(venues, aas='venues', status=200)
-    # if len(venues) > 0:
-    #    return JSONResponse.serialize(venues, aas='venues', status=200)
-    # else:
-    #    return GameError('4')
 
 
 @csrf_exempt
@@ -47,16 +43,16 @@ def venue_info(request):
         return GameError('9')
 
     try:
-        _obj = Venue.objects.get(venue_id=venue_id)
+        venue = Venue.objects.get(venue_id=venue_id)
     except Venue.DoesNotExist:
         return GameError('3')
     except Venue.MultipleObjectsReturned:
         return GameError('8')
 
-    if _obj is not None:
-        return JSONResponse.serialize(_obj, aas='objects', status=200)
-    else:
+    if venue is None:
         return GameError('4')
+
+    return JSONResponse.serialize(venue, aas='objects', status=200)
 
 
 @csrf_exempt
