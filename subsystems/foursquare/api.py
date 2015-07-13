@@ -3,12 +3,11 @@ from datetime import datetime, timedelta
 import logging
 import re
 from conf import secret
-from conf.settings_game import DEFAULT_CATEGORIES
+from conf.settings_game import DEFAULT_CATEGORIES, ZONE_UPDATE_DELTA_HOURS
 from subsystems.db.model_venue import Venue
 from subsystems.foursquare.utils.foursquare_api import Foursquare, FoursquareException
 
 logger = logging.getLogger(__name__)
-UPDATE_ZONE_DELTA_TIME = 12
 
 
 class FoursquareAPI:
@@ -86,16 +85,15 @@ class FoursquareAPI:
 
     @staticmethod
     def get_venues_from_zone(zone):
-        logger.info("\033[22;31m%s\033[0;0m" % "[ZONE] List for this zone doesnt exist.")
         if not FoursquareAPI.self:
             FoursquareAPI.self = FoursquareAPI()
 
-        if zone.timestamp + timedelta(hours=UPDATE_ZONE_DELTA_TIME).total_seconds() < datetime.now().timestamp():
-            logger.warning("[ZONE] Timestamp has expired. zid: %d" % zone.id)
+        if zone.list_id is None:
+            logger.warning("[ZONE] List for zone doesnt exist. zid: %d" % zone.id)
             FoursquareAPI.update_zone(zone)
 
-        if not zone.list_id:
-            logger.warning("[ZONE] List for this zone doesnt exist.")
+        if zone.timestamp + timedelta(hours=ZONE_UPDATE_DELTA_HOURS).total_seconds() < datetime.now().timestamp():
+            logger.warning("[ZONE] Timestamp has expired. zid: %d" % zone.id)
             FoursquareAPI.update_zone(zone)
 
         return list(Venue.objects.filter(list_id=zone.id))

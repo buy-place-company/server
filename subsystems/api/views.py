@@ -32,10 +32,11 @@ def zone_venues(request):
     for z in Zone.objects.get_zones(lat, lng, lat_size, lng_size):
         venues.extend(FoursquareAPI.get_venues_from_zone(z))
 
-    if len(venues) > 0:
-        return JSONResponse.serialize(venues, aas='venues', status=200)
-    else:
-        return GameError('4')
+    return JSONResponse.serialize(venues, aas='venues', status=200)
+    # if len(venues) > 0:
+    #    return JSONResponse.serialize(venues, aas='venues', status=200)
+    # else:
+    #    return GameError('4')
 
 
 @csrf_exempt

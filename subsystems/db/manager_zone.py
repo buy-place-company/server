@@ -57,10 +57,10 @@ class ZoneManager(models.Manager):
 
     def get_zones(self, lat, lng, lat_size, lng_size):
         zones = []
-        y = lat
-        while y < lat_size + ZONE_LAT_STEP:
-            x = lng
-            while x < lng_size + ZONE_LNG_STEP:
+        y = lat - lat_size/2
+        while y < lat + lat_size/2 + ZONE_LAT_STEP:
+            x = lng - lng_size/2
+            while x < lng + lng_size/2 + ZONE_LNG_STEP:
                 zones.append(self.get_parent(y, x))
                 x += ZONE_LNG_STEP
             y += ZONE_LAT_STEP
