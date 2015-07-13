@@ -1,3 +1,4 @@
+# coding=utf-8
 from datetime import datetime, timedelta
 import logging
 import re
@@ -5,6 +6,7 @@ from conf import secret
 from conf.settings_game import DEFAULT_CATEGORIES
 from subsystems.db.model_venue import Venue
 from subsystems.foursquare.utils.foursquare_api import Foursquare, FoursquareException
+
 logger = logging.getLogger(__name__)
 UPDATE_ZONE_DELTA_TIME = 12
 
@@ -96,5 +98,4 @@ class FoursquareAPI:
             logger.warning("[ZONE] List for this zone doesnt exist.")
             FoursquareAPI.update_zone(zone)
 
-        lst = list(Venue.objects.filter(list_id=zone.id))
-        return lst
+        return list(Venue.objects.filter(list_id=zone.id))
