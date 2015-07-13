@@ -1,4 +1,5 @@
 import json
+import logging
 import urllib.request
 from django.http import HttpResponse
 from django.template.loader import render_to_string
@@ -13,6 +14,7 @@ from subsystems.foursquare.api import FoursquareAPI
 from conf.settings_local import SettingsLocal
 from conf.secret import VK_APP_KEY, VK_APP_ID
 from conf.settings_game import ORDER_BY
+logger = logging.getLogger(__name__)
 
 
 @csrf_exempt
@@ -140,7 +142,8 @@ def auth_vk(request):
     try:
         conn = urllib.request.urlopen(url)
         data = json.loads(conn.read().decode('utf_8'))
-    except Exception:  # TODO: Too wide exception
+    except Exception as e:  # TODO: Too wide exception
+        logger.error(e)
         return GameError('10')
 
     if 'access_token' not in data or 'user_id' not in data:
