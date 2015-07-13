@@ -21,12 +21,12 @@ def zone_venues(request):
     try:
         lat = float(request.GET["lat"])
         lng = float(request.GET["lng"])
-    except:  # TODO: wide wxception
+    except (KeyError, ValueError):
         return GameError('2')
 
     try:
         zone = Zone.objects.get_zone(lat, lng)
-    except:  # TODO: too wide exception
+    except Zone.DoesNotExist:
         return GameError('3')
 
     objs = FoursquareAPI.get_venues_from_zone(zone)
