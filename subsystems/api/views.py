@@ -269,12 +269,13 @@ def auth_vk(request):
         raise Exception('ahaha, lulz')
 
     user = User.objects.create_and_auth_vk(request, vk_user_id)
-    data = {
-        'id': user.id,
-        'id_vk': user.id_vk,
-        'name': user.name
-    }
-    return HttpResponse(json.dumps(data), content_type="application/json")
+    return JSONResponse.serialize(user, aas=user, status=200)
+
+
+@csrf_exempt
+def logout(request):
+    if request.user.is_authenticated():
+        request.user.logout()
 
 
 def test(request):
