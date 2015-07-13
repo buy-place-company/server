@@ -4,7 +4,6 @@ from datetime import datetime
 from django.db import models
 
 from subsystems.db.manager_zone import ZoneManager
-from subsystems.db.model_venue import Venue
 
 
 class Zone(models.Model):

@@ -45,7 +45,7 @@ class ZoneManager(models.Manager):
                 sw_lng__lt=lng,
                 ne_lng__gte=lng
             )
-        except Zone.DoesNotExist:
+        except self.model.DoesNotExist:
             lat_min, lat_max = self.__normalize(lat, ZONE_LAT_STEP)
             lng_min, lng_max = self.__normalize(lng, ZONE_LNG_STEP)
             return self.create(
