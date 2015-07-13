@@ -43,10 +43,14 @@ class FoursquareAPI:
             FoursquareAPI.self = FoursquareAPI()
 
         try:
-            venues = FoursquareAPI.self.client.venues.search(
-                params={"intent": "browse", "sw": "%F,%F" % (zone.sw_lat, zone.sw_lng),
-                        "ne": "%F,%F" % (zone.ne_lat, zone.ne_lng),
-                        "categoryId": DEFAULT_CATEGORIES})['venues']
+            params = {
+                    "intent": "browse",
+                    "sw": "%F,%F" % (zone.sw_lat, zone.sw_lng),
+                    "ne": "%F,%F" % (zone.ne_lat, zone.ne_lng),
+                    "categoryId": DEFAULT_CATEGORIES,
+                    "limit": 50
+            }
+            venues = FoursquareAPI.self.client.venues.search(params=params)['venues']
         except FoursquareException as e:
             logging.warning("[4SK] " + str(e))
             return None
