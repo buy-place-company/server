@@ -1,6 +1,5 @@
 from django.db import models
 from conf.settings_game import ZONE_LAT_STEP, ZONE_LNG_STEP
-from subsystems.db.model_zone import Zone
 
 
 class ZoneManager(models.Manager):
