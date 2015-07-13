@@ -20,7 +20,7 @@ def zone_venues(request):
     try:
         lat = float(request.GET["lat"])
         lng = float(request.GET["lng"])
-    except (KeyError, ValueError):
+    except (KeyError, ValueError, TypeError):
         return GameError('2')
 
     try:
@@ -30,7 +30,7 @@ def zone_venues(request):
 
     objs = FoursquareAPI.get_venues_from_zone(zone)
 
-    if len(objs) > 0:  # TODO: 500
+    if len(objs) > 0:
         return JSONResponse.serialize(objs, aas='places', status=200)
     else:
         return GameError('4')
@@ -40,7 +40,7 @@ def zone_venues(request):
 def venue_info(request):
     try:
         venue_id = request.GET["venue_id"]
-    except ValueError:
+    except KeyError:
         return GameError('9')
 
     try:
@@ -127,7 +127,7 @@ def user_rating(request):
 def auth_vk(request):
     try:
         code = request.GET['code']
-    except (KeyError, ValueError):
+    except (KeyError, ValueError, TypeError):
         return GameError('1')
 
     url = \
@@ -148,7 +148,7 @@ def auth_vk(request):
 
     try:
         vk_user_id = int(data['user_id'])
-    except (KeyError, ValueError):
+    except (KeyError, ValueError, TypeError):
         return GameError('10')
 
     user = User.objects.create_and_auth_vk(request, vk_user_id)
