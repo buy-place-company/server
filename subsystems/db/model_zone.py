@@ -4,6 +4,7 @@ from datetime import datetime
 from django.db import models
 
 from subsystems.db.manager_zone import ZoneManager
+from subsystems.db.model_venue import Venue
 
 
 class Zone(models.Model):
@@ -34,17 +35,18 @@ class Zone(models.Model):
         lng = abs(self.ne_lng - self.sw_lng)
         if max(lat, lng) < min_size:
             return None, None
+        parent_id = self.parent_id is None and self.id or self.parent_id
         if lng < lat:
             middle = (self.sw_lat + self.ne_lat) / 2
             z1 = Zone.objects.create(
-                parent_id=self.id,
+                parent_id=parent_id,
                 sw_lat=self.sw_lat,
                 sw_lng=self.sw_lng,
                 ne_lat=middle,
                 ne_lng=self.ne_lng
             )
             z2 = Zone.objects.create(
-                parent_id=self.id,
+                parent_id=parent_id,
                 sw_lat=middle,
                 sw_lng=self.sw_lng,
                 ne_lat=self.ne_lat,
@@ -53,14 +55,14 @@ class Zone(models.Model):
         else:
             middle = (self.sw_lng + self.ne_lng) / 2
             z1 = Zone.objects.create(
-                parent_id=self.id,
+                parent_id=parent_id,
                 sw_lat=self.sw_lat,
                 sw_lng=self.sw_lng,
                 ne_lat=self.ne_lat,
                 ne_lng=middle
             )
             z2 = Zone.objects.create(
-                parent_id=self.id,
+                parent_id=parent_id,
                 sw_lat=self.sw_lat,
                 sw_lng=middle,
                 ne_lat=self.ne_lat,
@@ -69,3 +71,6 @@ class Zone(models.Model):
         self.is_active = False
         self.save(update_fields=['is_active'])
         return z1, z2
+
+    def has_point(self, lat, lng):
+        return self.sw_lat < lat <= self.ne_lat and self.sw_lng <= lng < self.ne_lng

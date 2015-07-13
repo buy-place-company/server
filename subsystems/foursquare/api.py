@@ -87,14 +87,11 @@ class FoursquareAPI:
         if not FoursquareAPI.self:
             FoursquareAPI.self = FoursquareAPI()
 
-        if zone.timestamp + timedelta(hours=12).total_seconds() < datetime.now().timestamp():
-            logger.warning("[ZONE] Timestamp has expired. zid: %d" % zone.id)
-            FoursquareAPI.update_zone(zone)
-
         if not zone.list_id:
             logger.warning("[ZONE] List for this zone doesnt exist.")
             FoursquareAPI.update_zone(zone)
+        elif zone.timestamp + timedelta(hours=12).total_seconds() < datetime.now().timestamp():
+            logger.warning("[ZONE] Timestamp has expired. zid: %d" % zone.id)
+            FoursquareAPI.update_zone(zone)
 
-        if zone.timestamp + timedelta(hours=12).total_seconds() >= datetime.now().timestamp():
-            lst = list(Venue.objects.filter(list_id=zone.id))
-            return lst
+        return list(Venue.objects.filter(list_id=zone.id))

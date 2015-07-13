@@ -3,8 +3,8 @@ from subsystems.db.model_zone import Zone
 
 
 def init_db(lat_step, lng_step):
-    x = 0
-    while x < 360:
+    x = -180
+    while x < 180:
         y = -90
         while y < 90:
             Zone.objects.create(
