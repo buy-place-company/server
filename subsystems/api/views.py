@@ -13,7 +13,8 @@ from subsystems.db.model_zone import Zone
 from subsystems.foursquare.api import FoursquareAPI
 from conf.settings_local import SettingsLocal
 from conf.secret import VK_APP_KEY, VK_APP_ID
-from conf.settings_game import ORDER_BY
+from conf.settings_game import ORDER_BY, ZONE_LNG_STEP, ZONE_LAT_STEP
+
 logger = logging.getLogger(__name__)
 
 
@@ -22,18 +23,17 @@ def zone_venues(request):
     try:
         lat = float(request.GET["lat"])
         lng = float(request.GET["lng"])
+        lat_size = min(request.GET.get("lat_size", ZONE_LAT_STEP), 10*ZONE_LAT_STEP)
+        lng_size = min(request.GET.get("lng_size", ZONE_LNG_STEP), 10*ZONE_LNG_STEP)
     except (KeyError, ValueError, TypeError):
         return GameError('2')
 
-    try:
-        zone = Zone.objects.get_zone(lat, lng)
-    except Zone.DoesNotExist:
-        return GameError('3')
+    venues = []
+    for z in Zone.objects.get_zones(lat, lng, lat_size, lng_size):
+        venues.extend(FoursquareAPI.get_venues_from_zone(z))
 
-    objs = FoursquareAPI.get_venues_from_zone(zone)
-
-    if len(objs) > 0:
-        return JSONResponse.serialize(objs, aas='places', status=200)
+    if len(venues) > 0:
+        return JSONResponse.serialize(venues, aas='venues', status=200)
     else:
         return GameError('4')
 
@@ -155,7 +155,7 @@ def auth_vk(request):
         return GameError('10')
 
     user = User.objects.create_and_auth_vk(request, vk_user_id)
-    return JSONResponse.serialize(user, aas=user, status=200)
+    return JSONResponse.serialize(user, aas='user', status=200)
 
 
 @csrf_exempt
