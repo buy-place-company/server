@@ -1,8 +1,10 @@
 import json
+import datetime
 import urllib.request
 from django.http import HttpResponse
 from django.template.loader import render_to_string
 from django.views.decorators.csrf import csrf_exempt
+from conf import secret
 from subsystems.api.errors import GameError, NoMoneyError, HasOwnerAlready, UHaveIt, UDontHaveIt
 from subsystems.api.utils import JSONResponse, VenueView
 from subsystems.db.model_user import User
@@ -11,8 +13,8 @@ from subsystems.db.model_zone import Zone
 from subsystems.foursquare.api import FoursquareAPI
 from conf.settings_local import SettingsLocal
 from conf.secret import VK_APP_KEY, VK_APP_ID
-from conf.settings_game import ORDER_BY
-
+from conf.settings_game import ORDER_BY, DEFAULT_CATEGORIES
+from subsystems.foursquare.utils.foursquare_api import Foursquare, ServerError
 
 redirect_url = "http://yandex.ru"
 # TODO: security!!!
@@ -214,7 +216,7 @@ def user_rating(request):
         return GameError('1')
 
     offset = request.GET.get('offset', 0)
-    order_by = ORDER_BY[request.GET.get('param', 'exp')]  # TODO: 500
+    order_by = ORDER_BY.get(request.GET.get('param', 'exp'), ORDER_BY['exp'])
 
     if order_by is None:
         order_by = 'cash'
@@ -229,14 +231,14 @@ def user_rating(request):
 def auth_vk(request):
     try:
         code = request.GET['code']
-    except:
-        return GameError('1') # TODO: exception
+    except (KeyError, ValueError):
+        return GameError('1')
 
     url = \
         "https://oauth.vk.com/access_token?" + \
         "client_id=%s&" % VK_APP_ID + \
         "client_secret=%s&" % VK_APP_KEY + \
-        "code=%s&" % request.GET.get('code', '') + \
+        "code=%s&" % code + \
         "redirect_uri=%s" % SettingsLocal.AUTH_REDIRECT_URL
 
     try:
@@ -250,7 +252,7 @@ def auth_vk(request):
 
     try:
         vk_user_id = int(data['user_id'])
-    except:
+    except (KeyError, ValueError):
         return GameError('10')
 
     user = User.objects.create_and_auth_vk(request, vk_user_id)
