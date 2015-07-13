@@ -13,7 +13,7 @@ from subsystems.foursquare.utils.foursquare_api import ServerError
 
 class JSONResponse:
     @staticmethod
-    def serialize(o, **kwargs):
+    def serialize(o=None, **kwargs):
         is_public = kwargs.pop('public', True)
         aas = kwargs.pop('aas', 'data')
         if o is None:

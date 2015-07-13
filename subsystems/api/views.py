@@ -30,7 +30,7 @@ def zone_venues(request):
 
     objs = FoursquareAPI.get_venues_from_zone(zone)
 
-    if len(objs) > 0:  # TODO: 500
+    if len(objs) > 0:
         return JSONResponse.serialize(objs, aas='places', status=200)
     else:
         return GameError('4')
