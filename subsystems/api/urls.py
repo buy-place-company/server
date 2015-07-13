@@ -17,5 +17,6 @@ urlpatterns = patterns('subsystems.api.views',
     url(r'user/profile', 'user_profile'),
     url(r'user/venues$', 'user_venues'),
     url(r'user/rating$', 'user_rating'),
-    url(r'auth/vk', 'auth_vk')
+    url(r'auth/vk', 'auth_vk'),
+    url(r'auth/logout', 'auth_logout')
 )

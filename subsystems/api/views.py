@@ -3,6 +3,7 @@ import urllib.request
 from django.http import HttpResponse
 from django.template.loader import render_to_string
 from django.views.decorators.csrf import csrf_exempt
+from subsystems._auth import logout
 from subsystems.api.errors import GameError, NoMoneyError, HasOwnerAlready, UHaveIt, UDontHaveIt
 from subsystems.api.utils import JSONResponse, VenueView
 from subsystems.db.model_user import User
@@ -13,8 +14,6 @@ from conf.settings_local import SettingsLocal
 from conf.secret import VK_APP_KEY, VK_APP_ID
 from conf.settings_game import ORDER_BY
 
-redirect_url = "http://yandex.ru"
-# TODO: security!!!
 
 @csrf_exempt
 def zone_venues(request):
@@ -157,9 +156,9 @@ def auth_vk(request):
 
 
 @csrf_exempt
-def logout(request):
-    if request.user.is_authenticated():
-        request.user.logout()
+def auth_logout(request):
+    logout(request)
+    return JSONResponse.serialize(status=200)
 
 
 def test(request):
