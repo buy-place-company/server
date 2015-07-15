@@ -1,21 +1,24 @@
+# -*- coding: utf-8 -*-
 import json
 from django.http import HttpResponse
 
 ERRORS = {
-    '1': {'status': 401, 'message': 'unauthorized access'},
-    '2': {'status': 101, 'message': 'not enough args: lat and lng'},
-    '3': {'status': 301, 'message': 'cant find zone at this coordinates'},
-    '4': {'status': 302, 'message': 'internal foursquare error'},
-    '5': {'status': 101, 'message': 'not enough args: action'},
-    '6': {'status': 101, 'message': 'building id isnt specified'},
-    '7': {'status': 302, 'message': 'no such building'},
-    '8': {'status': 103, 'message': 'Smth wrong'},
-    '9': {'status': 104, 'message': 'Invalid param specified.'},
-    '10': {'status': 105, 'message': '[VK] HTTP Error 401: Unauthorized'},
-    '11': {'status': 201, 'message': 'No money for action'},
-    '12': {'status': 202, 'message': 'The building has owner already'},
-    '13': {'status': 203, 'message': 'U have this building already'},
-    '14': {'status': 203, 'message': 'U dont have this building yet'},
+    # System errors
+    'no_action': {'status': 101, 'message': '[SYS] No such action'},
+    'no_venue': {'status': 302, 'message': '[SYS] No such venue'},
+    'no_auth': {'status': 401, 'message': '[SYS] Unauthorized access'},
+    'no_args': {'status': 101, 'message': '[SYS] Not enough args: %s'},
+    'wrong_args': {'status': 101, 'message': '[SYS] Wrong args: %s'},
+
+    # Partners errors
+    'VK_no_auth': {'status': 105, 'message': '[VK] HTTP Error 401: Unauthorized'},
+    'VK': {'status': 105, 'message': '[VK] %s'},
+
+    # Game errors
+    'no_money': {'status': 201, 'message': '[GAME] No money for this action'},
+    'owner_exists': {'status': 202, 'message': '[GAME] The building has owner already'},
+    'already_have': {'status': 203, 'message': '[GAME] U have this building already'},
+    'dont_have': {'status': 203, 'message': '[GAME] U dont have this building yet'},
 }
 
 
@@ -36,6 +39,13 @@ class UDontHaveIt(Exception):
 
 
 class GameError(HttpResponse):
-    def __init__(self, code):
-        super(GameError, self).__init__(json.dumps(ERRORS[code]), content_type='application/json')
+    def __init__(self, code, message_params=None):
+        error = ERRORS[code].copy()
+        error['message'] = (error['message'] % message_params) if message_params else error['message']
+        super(GameError, self).__init__(json.dumps(error), content_type='application/json')
 
+
+class SystemGameError(BaseException):
+    def __init__(self, message):
+        self.message = message
+        super(SystemGameError, self).__init__()

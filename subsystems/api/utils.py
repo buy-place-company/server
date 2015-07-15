@@ -3,12 +3,32 @@ import datetime
 from django.db.models import QuerySet
 from django.http import HttpResponse
 from conf import secret
-from subsystems.api.errors import NoMoneyError, HasOwnerAlready, UHaveIt, UDontHaveIt
+from subsystems.api.errors import NoMoneyError, HasOwnerAlready, UHaveIt, UDontHaveIt, SystemGameError
 from subsystems.db.model_venue import Venue
 from subsystems.db.model_zone import Zone
 from subsystems.foursquare.api import Foursquare
 from conf.settings_game import DEFAULT_CATEGORIES, DUTY
 from subsystems.foursquare.utils.foursquare_api import ServerError
+
+
+def get_params(request, *args):
+    params = []
+    for arg in args:
+        try:
+            params.append(request.GET[arg])
+        except KeyError:
+            raise SystemGameError(message=arg)
+    return params
+
+
+def post_params(request, *args):
+    params = []
+    for arg in args:
+        try:
+            params.append(request.POST[arg])
+        except KeyError:
+            raise SystemGameError(message=arg)
+    return params
 
 
 class JSONResponse:
