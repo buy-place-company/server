@@ -7,7 +7,7 @@ from django.utils.timezone import now
 
 from subsystems._auth import logout
 from subsystems.api.errors import GameError, NoMoneyError, HasOwnerAlready, UHaveIt, UDontHaveIt, SystemGameError, \
-    InDeal, ERRORS, LogWarning
+    InDeal, LogWarning
 from subsystems.api.utils import JSONResponse, VenueView, get_params, post_params
 from subsystems.db.model_deal import Deal, STATES
 from subsystems.db.model_user import User
@@ -23,7 +23,6 @@ logger = logging.getLogger(__name__)
 
 @csrf_exempt
 def zone_venues(request):
-    print(request.user.name)
     try:
         lat, lng = get_params(request, 'lat', 'lng')
     except SystemGameError as e:
@@ -42,7 +41,7 @@ def zone_venues(request):
 
     venues = []
     for z in Zone.objects.get_zones(lat, lng, lat_size, lng_size):
-        venues.extend(FoursquareAPI.get_venues_from_zone(z))
+        venues.extend(FoursquareAPI.get_venues_from_zone(z, stop_4sk=True))
 
     return JSONResponse.serialize(venues, aas='venues', status=200)
 
