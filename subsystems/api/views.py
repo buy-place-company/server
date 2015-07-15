@@ -20,7 +20,7 @@ logger = logging.getLogger(__name__)
 
 @csrf_exempt
 def zone_venues(request):
-    print(request.user)
+    print(request.user.name)
     try:
         lat = float(request.GET["lat"])
         lng = float(request.GET["lng"])
