@@ -7,7 +7,7 @@ from django.utils.timezone import now
 
 from subsystems._auth import logout
 from subsystems.api.errors import GameError, NoMoneyError, HasOwnerAlready, UHaveIt, UDontHaveIt, SystemGameError, \
-    InDeal, ERRORS, LogWarning
+    InDeal, LogWarning
 from subsystems.api.utils import JSONResponse, VenueView, get_params, post_params
 from subsystems.db.model_deal import Deal, STATES
 from subsystems.db.model_user import User

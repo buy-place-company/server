@@ -2,6 +2,8 @@
 from datetime import datetime, timedelta
 import logging
 import re
+import  multiprocessing as mp
+
 from conf import secret
 from conf.settings_game import DEFAULT_CATEGORIES, ZONE_UPDATE_DELTA_HOURS
 from subsystems.db.model_venue import Venue
@@ -9,9 +11,29 @@ from subsystems.foursquare.utils.foursquare_api import Foursquare, FoursquareExc
 
 logger = logging.getLogger(__name__)
 
+class Task:
+    def __init__(self, venues, zone):
+        self.venue_ids = [x['id'] for x in venues]
+        self.zone_id = zone.id
+        self.list_id = zone.list_id
+
+
+def add_to_list(queue):
+    while True:
+        task = queue.get()
+        for venue in task.venue_ids:
+            item = FoursquareAPI.self.client.lists.additem(list_id=task.list_id, params={'venueId': venue})['item']
+            dbvenue = FoursquareAPI.venue_from_item(item, item['venue']['id'])
+            dbvenue.list_id = task.zone_id
+            dbvenue.save()
+            print("Added " + venue.name)
+
+
 
 class FoursquareAPI:
     self = None
+    demon = None
+    queue = None
 
     def __init__(self):
         self.client = Foursquare(client_id=secret.client_id, client_secret=secret.secret_id,
@@ -34,7 +56,6 @@ class FoursquareAPI:
         venue.name = re.sub(r'[^a-zа-яA-ZА-Я ]', "", venue_raw['name'])
         # TODO: список категорий
         venue.category = venue_raw['categories'][0]['name']
-        # print("Added " + venue.name)
         return venue
 
     @staticmethod
@@ -69,12 +90,12 @@ class FoursquareAPI:
 
         zone.update(lst_id)
 
-        for venue in venues:
-            if venue.get('id', ''):
-                item = FoursquareAPI.self.client.lists.additem(list_id=lst_id, params={'venueId': venue['id']})['item']
-                dbvenue = FoursquareAPI.venue_from_item(item, item['venue']['id'])
-                dbvenue.list_id = zone.id
-                dbvenue.save()
+        if not FoursquareAPI.demon:
+            queue = mp.Queue()
+            FoursquareAPI.queue = queue
+            FoursquareAPI.demon = mp.Process(target=add_to_list(queue))
+
+        queue.put(Task(venues, zone))
 
         return zone
 
