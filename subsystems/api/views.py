@@ -1,9 +1,9 @@
 import json
 import logging
 import urllib.request
-from django.http import HttpResponse
-from django.template.loader import render_to_string
+
 from django.views.decorators.csrf import csrf_exempt
+
 from subsystems._auth import logout
 from subsystems.api.errors import GameError, NoMoneyError, HasOwnerAlready, UHaveIt, UDontHaveIt
 from subsystems.api.utils import JSONResponse, VenueView
@@ -162,5 +162,15 @@ def auth_logout(request):
     return JSONResponse.serialize(status=200)
 
 
+@csrf_exempt
+def user_deals(request):
+    return JSONResponse.serialize(status=200)
+
+
+@csrf_exempt
+def deals_new(request):
+    return JSONResponse.serialize(status=200)
+
+
 def test(request):
-    return HttpResponse(render_to_string("test.html", {}))
+    return JSONResponse.serialize(status=200)

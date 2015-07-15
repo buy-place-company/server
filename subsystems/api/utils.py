@@ -30,7 +30,7 @@ class JSONResponse:
         else:
             d = o.serialize(is_public)
             d = {aas: d}
-            d.update(kwargs)
+        d.update(kwargs)
         return HttpResponse(json.dumps(d, ensure_ascii=False))
 
 

@@ -2,6 +2,7 @@ from django.conf.urls import patterns, url
 
 urlpatterns = patterns('subsystems.api.views',
     # TODO: выпилить это, ниже куда структурированней и понятней
+    # TODO: разнести в отдельные приложения, а не держать в одном
     url(r'objects$', 'zone_venues'),
     url(r'object$', 'venue_info'),
     url(r'object_action$', 'venue_action'),
@@ -16,7 +17,9 @@ urlpatterns = patterns('subsystems.api.views',
     url(r'venue/action$', 'venue_action'),
     url(r'user/profile', 'user_profile'),
     url(r'user/venues$', 'user_venues'),
+    url(r'user/deals', 'user_deals'),
     url(r'user/rating$', 'user_rating'),
     url(r'auth/vk', 'auth_vk'),
-    url(r'auth/logout', 'auth_logout')
+    url(r'auth/logout', 'auth_logout'),
+    url(r'deals/new', 'deals_new'),
 )
