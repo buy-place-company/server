@@ -73,8 +73,8 @@ def venue_action(request):
     except SystemGameError as e:
         return GameError('no_args', e.message)
 
-    if not action or not hasattr(VenueView, action):
-        return GameError('no_action')
+    if hasattr(VenueView, action):
+        return GameError('wrong_args', 'action')
 
     try:
         venue = VenueView(venue_id)
@@ -194,16 +194,19 @@ def deals_new(request):
     except SystemGameError as e:
         return GameError('no_args', e.message)
 
+    venue = Venue.objects.get(venue_id=venue_id)
+    if venue.owner == request.user:
+        return GameError('already_have')
+
     try:
-        Deal.objects.get(venue=venue_id, user_from=request.user)
+        deal = Deal.objects.get(venue=venue_id, user_from=request.user)
     except Deal.DoesNotExist:
         pass
     else:
-        return JSONResponse.serialize(status=101)
+        return JSONResponse.serialize(deal, aas='deal', status=204)
 
-    venue = Venue.objects.get(venue_id=venue_id)
-    Deal.objects.create(venue=venue, user_from=request.user, user_to=venue.owner, amount=amount)
-    return JSONResponse.serialize(status=200)
+    deal = Deal.objects.create(venue=venue, user_from=request.user, user_to=venue.owner, amount=amount)
+    return JSONResponse.serialize(deal, aas='deal', status=200)
 
 
 def test(request):
