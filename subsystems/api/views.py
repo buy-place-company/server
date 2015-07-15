@@ -50,7 +50,7 @@ def venue_info(request):
     try:
         venue_id = get_params(request, 'venue_id')
     except SystemGameError as e:
-        return GameError(code='no_args', message_params=e.message)
+        return GameError('no_args', e.message)
 
     try:
         venue = Venue.objects.get(venue_id=venue_id)
@@ -71,7 +71,7 @@ def venue_action(request):
     try:
         action, venue_id = post_params(request, 'action', 'venue_id')
     except SystemGameError as e:
-        return GameError(code='no_args', message_params=e.message)
+        return GameError('no_args', e.message)
 
     if not action or not hasattr(VenueView, action):
         return GameError('no_action')
@@ -148,10 +148,10 @@ def auth_vk(request):
         data = json.loads(conn.read().decode('utf_8'))
     except Exception as e:  # TODO: Too wide exception
         logger.error(e)
-        return GameError(code='VK', message_params=str(e))
+        return GameError('VK', str(e))
 
     if 'access_token' not in data or 'user_id' not in data:
-        return GameError(code='VK_no_auth')
+        return GameError('VK_no_auth')
 
     try:
         vk_user_id = int(data['user_id'])
@@ -192,7 +192,7 @@ def deals_new(request):
     try:
         venue_id, amount = get_params(request, 'venue_id', 'amount')
     except SystemGameError as e:
-        return GameError(code='no_args', message_params=e.message)
+        return GameError('no_args', e.message)
 
     try:
         Deal.objects.get(venue=venue_id, user_from=request.user)
