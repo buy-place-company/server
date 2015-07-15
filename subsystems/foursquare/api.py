@@ -92,7 +92,7 @@ class FoursquareAPI:
         if not FoursquareAPI.demon:
             queue = mp.Queue()
             FoursquareAPI.queue = queue
-            FoursquareAPI.demon = mp.Process(target=add_to_list, args=(queue.))
+            FoursquareAPI.demon = mp.Process(target=add_to_list, args=(queue,))
 
         queue.put(Task(venues, zone))
 
