@@ -21,5 +21,7 @@ urlpatterns = patterns('subsystems.api.views',
     url(r'user/rating$', 'user_rating'),
     url(r'auth/vk', 'auth_vk'),
     url(r'auth/logout', 'auth_logout'),
-    url(r'deals/new', 'deals_new'),
+    url(r'deals/new', 'deal_new'),
+    url(r'deals/cancel', 'deal_cancel'),
+    url(r'deals/accept', 'deal_accept'),
 )

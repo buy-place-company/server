@@ -3,11 +3,13 @@ import logging
 import urllib.request
 
 from django.views.decorators.csrf import csrf_exempt
+from django.utils.timezone import now
 
 from subsystems._auth import logout
-from subsystems.api.errors import GameError, NoMoneyError, HasOwnerAlready, UHaveIt, UDontHaveIt, SystemGameError
+from subsystems.api.errors import GameError, NoMoneyError, HasOwnerAlready, UHaveIt, UDontHaveIt, SystemGameError, \
+    InDeal, ERRORS, LogWarning
 from subsystems.api.utils import JSONResponse, VenueView, get_params, post_params
-from subsystems.db.model_deal import Deal
+from subsystems.db.model_deal import Deal, STATES
 from subsystems.db.model_user import User
 from subsystems.db.model_venue import Venue
 from subsystems.db.model_zone import Zone
@@ -73,7 +75,7 @@ def venue_action(request):
     except SystemGameError as e:
         return GameError('no_args', e.message)
 
-    if hasattr(VenueView, action):
+    if not hasattr(VenueView, action):
         return GameError('wrong_args', 'action')
 
     try:
@@ -91,6 +93,8 @@ def venue_action(request):
         return GameError('already_have')
     except UDontHaveIt:
         return GameError('dont_have')
+    except InDeal:
+        return GameError('in_deal')
 
     return JSONResponse.serialize(request.user, aas='user', status=200, public=False)
 
@@ -185,7 +189,7 @@ def user_deals(request):
 
 
 @csrf_exempt
-def deals_new(request):
+def deal_info(request):
     if not request.user.is_authenticated():
         return GameError('no_auth')
 
@@ -205,9 +209,113 @@ def deals_new(request):
     else:
         return JSONResponse.serialize(deal, aas='deal', status=204)
 
+    deal = Deal.objects.create(venue=venue, user_from=request.user, user_to=venue.owner, amount=amount, state=STATES[0])
+    return JSONResponse.serialize(deal, aas='deal', status=200)
+
+
+@csrf_exempt
+def deal_new(request):
+    if not request.user.is_authenticated():
+        return GameError('no_auth')
+
+    try:
+        venue_id, amount = get_params(request, 'venue_id', 'amount')
+    except SystemGameError as e:
+        return GameError('no_args', e.message)
+
+    venue = Venue.objects.get(venue_id=venue_id)
+    if venue.owner == request.user:
+        return GameError('already_have')
+    elif not venue.owner:
+        return GameError('no_owner')
+
+    try:
+        deal = Deal.objects.get(venue=venue_id, user_from=request.user)
+    except Deal.DoesNotExist:
+        pass
+    else:
+        return JSONResponse.serialize(deal, aas='deal', status=204)
+
     deal = Deal.objects.create(venue=venue, user_from=request.user, user_to=venue.owner, amount=amount)
     return JSONResponse.serialize(deal, aas='deal', status=200)
 
+
+@csrf_exempt
+def deal_cancel(request):
+    if not request.user.is_authenticated():
+        return GameError('no_auth')
+
+    try:
+        deal_id = get_params(request, 'deal_id')
+    except SystemGameError as e:
+        return GameError('no_args', e.message)
+
+    try:
+        deal = Deal.objects.get(venue=deal_id, user_from=request.user)
+    except Deal.DoesNotExist:
+        return GameError('no_deal')
+
+    if request.user == deal.user_from:
+        deal.state = STATES[3]
+    elif request.user == deal.user_to:
+        deal.state = STATES[2]
+    elif not deal.is_public:
+        return GameError('no_deal')
+    else:
+        return GameError('no_perm')
+    deal.date_expire = now()
+    deal.save(update_fields=['date_expire', 'state'])
+    return JSONResponse.serialize(deal, aas='deal', status=200)
+
+
+@csrf_exempt
+def deal_accept(request):
+    if not request.user.is_authenticated():
+        return GameError('no_auth')
+
+    try:
+        deal_id = get_params(request, 'venue_id', 'amount')
+    except SystemGameError as e:
+        return GameError('no_args', e.message)
+
+    try:
+        deal = Deal.objects.get(venue=deal_id, user_from=request.user)
+    except Deal.DoesNotExist:
+        return GameError('no_deal')
+
+    if deal.is_public or request.user == deal.user_to:
+        if request.user.cash < deal.amount:
+            return GameError('no_money')
+        elif not deal.venue.owner:
+            logger.warning(LogWarning('dont_have'))
+            return GameError('dont_have')
+        elif deal.venue.owner != deal.user_from:
+            logger.warning(LogWarning('sold'))
+            return GameError('sold')
+        elif deal.venue.owner == deal.user_to:
+            logger.warning(LogWarning('already_have'))
+            return GameError('already_have')
+
+        deal.user_to = request.user
+        deal.user_to.cash -= deal.amount
+        deal.user_to.score += deal.venue.expense
+        deal.user_to.buildings_count += 1
+        deal.user_from.cash += deal.venue.price
+        deal.user_from.score -= deal.venue.price if deal.user_from.score >= deal.venue.price else 0
+        deal.user_from.buildings_count -= 1 if deal.user_from.buildings_count > 0 else 0
+        deal.venue.save()
+        deal.user_to.save()
+        deal.user_from.save()
+        deal.state = STATES[2]
+
+    elif not deal.is_public:
+        return GameError('no_deal')
+    else:
+        return GameError('no_perm')
+
+    deal.state = STATES[1]
+    deal.date_expire = now()
+    return JSONResponse.serialize(deal, aas='deal', status=200)
 
 def test(request):
     return JSONResponse.serialize(status=200)

@@ -4,6 +4,7 @@ from django.db.models import QuerySet
 from django.http import HttpResponse
 from conf import secret
 from subsystems.api.errors import NoMoneyError, HasOwnerAlready, UHaveIt, UDontHaveIt, SystemGameError
+from subsystems.db.model_deal import Deal
 from subsystems.db.model_venue import Venue
 from subsystems.db.model_zone import Zone
 from subsystems.foursquare.api import Foursquare
@@ -25,7 +26,7 @@ def post_params(request, *args):
     params = []
     for arg in args:
         try:
-            params.append(request.POST[arg])
+            params.append(request.GET[arg])
         except KeyError:
             raise SystemGameError(message=arg)
     return params
@@ -131,10 +132,12 @@ class VenueView:
         if self.venue.owner != user:
             raise UDontHaveIt
 
+        if Deal.objects.get(venue=self.venue):
+            raise InDeal
         self.venue.owner = None
         user.cash += self.venue.price
-        user.score -= self.venue.price
-        user.buildings_count -= 1
+        user.score -= self.venue.price if user.score >= self.venue.price else 0
+        user.buildings_count -= 1 if user.buildings_count > 0 else 0
         user.save()
         self.venue.save()
 

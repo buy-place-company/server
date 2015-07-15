@@ -9,6 +9,7 @@ ERRORS = {
     'no_auth': {'status': 401, 'message': '[SYS] Unauthorized access'},
     'no_args': {'status': 101, 'message': '[SYS] Not enough args: %s'},
     'wrong_args': {'status': 101, 'message': '[SYS] Wrong args: %s'},
+    'no_deal': {'status': 403, 'message': '[SYS] No such deal'},
 
     # Partners errors
     'VK_no_auth': {'status': 105, 'message': '[VK] HTTP Error 401: Unauthorized'},
@@ -19,6 +20,11 @@ ERRORS = {
     'owner_exists': {'status': 202, 'message': '[GAME] The building has owner already'},
     'already_have': {'status': 203, 'message': '[GAME] U have this building already'},
     'dont_have': {'status': 203, 'message': '[GAME] U dont have this building yet'},
+    'no_owner': {'status': 214, 'message': '[GAME] No one doesnt have this building yet'},
+    'in_deal': {'status': 215, 'message': '[GAME] Building is a part of deal already'},
+    'sold': {'status': 216, 'message': '[GAME] Building has been sold already'},
+
+    'no_perm': {'status': 492, 'message': '[GAME] You cant do it'}
 }
 
 
@@ -37,6 +43,18 @@ class UHaveIt(Exception):
 class UDontHaveIt(Exception):
     pass
 
+
+class InDeal(Exception):
+    pass
+
+
+class LogWarning:
+    def __init__(self, code, message_params=None):
+        error = ERRORS[code].copy()
+        self.message = (error['message'] % message_params) if message_params else error['message']
+
+    def __unicode__(self):
+        return self.message
 
 class GameError(HttpResponse):
     def __init__(self, code, message_params=None):

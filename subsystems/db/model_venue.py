@@ -31,7 +31,6 @@ class Venue(models.Model):
     category = models.CharField(max_length=255)
     lvl = models.IntegerField(default=0)
     owner = models.ForeignKey(User, null=True, blank=True)
-    price = models.IntegerField(default=10000)
     lat = models.FloatField(default=0)
     lng = models.FloatField(default=0)
 
