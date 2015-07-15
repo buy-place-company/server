@@ -4,21 +4,28 @@ from django.http import HttpResponse
 
 ERRORS = {
     # System errors
-    'no_action': {'status': 101, 'message': '[SYS] No such action'},
-    'no_venue': {'status': 302, 'message': '[SYS] No such venue'},
-    'no_auth': {'status': 401, 'message': '[SYS] Unauthorized access'},
-    'no_args': {'status': 101, 'message': '[SYS] Not enough args: %s'},
-    'wrong_args': {'status': 101, 'message': '[SYS] Wrong args: %s'},
+    ## No args
+    'no_args': {'status': 400, 'message': '[SYS] Not enough args: %s'},
+    'no_action': {'status': 401, 'message': '[SYS] No such action'},
+    'no_venue': {'status': 402, 'message': '[SYS] No such venue'},
+    'no_deal': {'status': 403, 'message': '[SYS] No such deal'},
+    ## Wrong type/format
+    'wrong_args': {'status': 421, 'message': '[SYS] Wrong args: %s'},
+    ## Other
+    'no_auth': {'status': 491, 'message': '[SYS] Unauthorized access'},
 
     # Partners errors
-    'VK_no_auth': {'status': 105, 'message': '[VK] HTTP Error 401: Unauthorized'},
-    'VK': {'status': 105, 'message': '[VK] %s'},
+    'VK': {'status': 300, 'message': '[VK] %s'},
+    'VK_no_auth': {'status': 301, 'message': '[VK] HTTP Error 401: Unauthorized'},
 
     # Game errors
+    ## Users
     'no_money': {'status': 201, 'message': '[GAME] No money for this action'},
-    'owner_exists': {'status': 202, 'message': '[GAME] The building has owner already'},
-    'already_have': {'status': 203, 'message': '[GAME] U have this building already'},
-    'dont_have': {'status': 203, 'message': '[GAME] U dont have this building yet'},
+    ## Buildings
+    'owner_exists': {'status': 211, 'message': '[GAME] The building has owner already'},
+    'already_have': {'status': 212, 'message': '[GAME] You have this building already'},
+    'dont_have': {'status': 213, 'message': '[GAME] You dont have this building yet'},
+    'no_owner': {'status': 214, 'message': '[GAME] No one doesnt have this building yet'},
 }
 
 
