@@ -26,8 +26,7 @@ def add_to_list(queue):
             dbvenue = FoursquareAPI.venue_from_item(item, item['venue']['id'])
             dbvenue.list_id = task.zone_id
             dbvenue.save()
-            print("Added " + venue.name)
-
+            print("Added " + venue['name'])
 
 
 class FoursquareAPI:

@@ -23,7 +23,6 @@ logger = logging.getLogger(__name__)
 
 @csrf_exempt
 def zone_venues(request):
-    print(request.user.name)
     try:
         lat, lng = get_params(request, 'lat', 'lng')
     except SystemGameError as e:
