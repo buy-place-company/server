@@ -94,7 +94,7 @@ class FoursquareAPI:
             FoursquareAPI.queue = queue
             FoursquareAPI.demon = mp.Process(target=add_to_list, args=(queue,))
 
-        queue.put(Task(venues, zone))
+        FoursquareAPI.queue.put(Task(venues, zone))
 
         return zone
 
@@ -112,8 +112,8 @@ class FoursquareAPI:
         if not FoursquareAPI.self:
             FoursquareAPI.self = FoursquareAPI()
 
-        if stop_4sk:
-            return list(Venue.objects.filter(list_id=zone.id))
+        # if stop_4sk:
+        #     return list(Venue.objects.filter(list_id=zone.id))
 
         if zone.list_id is None:
             logger.warning("[ZONE] List for zone doesnt exist. zid: %d" % zone.id)
