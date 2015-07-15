@@ -194,23 +194,19 @@ def deal_info(request):
         return GameError('no_auth')
 
     try:
-        venue_id, amount = get_params(request, 'venue_id', 'amount')
+        deal_id = get_params(request, 'deal_id')
     except SystemGameError as e:
         return GameError('no_args', e.message)
 
-    venue = Venue.objects.get(venue_id=venue_id)
-    if venue.owner == request.user:
-        return GameError('already_have')
-
     try:
-        deal = Deal.objects.get(venue=venue_id, user_from=request.user)
+        deal = Deal.objects.get(pk=deal_id)
     except Deal.DoesNotExist:
-        pass
-    else:
-        return JSONResponse.serialize(deal, aas='deal', status=204)
+        return GameError('no_deal')
 
-    deal = Deal.objects.create(venue=venue, user_from=request.user, user_to=venue.owner, amount=amount, state=STATES[0])
-    return JSONResponse.serialize(deal, aas='deal', status=200)
+    if request.user == deal.user_from or request.user == deal.user_to or deal.is_public:
+        return JSONResponse.serialize(deal, aas='deal', status=200)
+    else:
+        return GameError('no_deal')
 
 
 @csrf_exempt
