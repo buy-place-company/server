@@ -41,7 +41,7 @@ def zone_venues(request):
 
     venues = []
     for z in Zone.objects.get_zones(lat, lng, lat_size, lng_size):
-        venues.extend(FoursquareAPI.get_venues_from_zone(z))
+        venues.extend(FoursquareAPI.get_venues_from_zone(z, stop_4sk=True))
 
     return JSONResponse.serialize(venues, aas='venues', status=200)
 
