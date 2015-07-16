@@ -133,7 +133,7 @@ class VenueView:
         if self.venue.owner != user:
             raise UDontHaveIt
 
-        if Deal.objects.get(venue=self.venue):
+        if Deal.objects.filter(venue=self.venue):
             raise InDeal
         self.venue.owner = None
         user.cash += self.venue.npc_sell_price
