@@ -26,7 +26,7 @@ def post_params(request, *args):
     params = []
     for arg in args:
         try:
-            params.append(request.GET[arg])
+            params.append(request.POST[arg])
         except KeyError:
             raise SystemGameError(message=arg)
     return params
