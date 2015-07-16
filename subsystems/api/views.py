@@ -45,7 +45,7 @@ def zone_venues(request):
         print(FoursquareAPI.get_venues_from_zone(z))
         venues.extend(FoursquareAPI.get_venues_from_zone(z))
 
-    return JSONResponse.serialize(venues, aas='venues', status=200)
+    return JSONResponse.serialize(venues, user_owner=request.user, aas='venues', status=200)
 
 
 @csrf_exempt

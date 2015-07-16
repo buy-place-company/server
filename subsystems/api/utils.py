@@ -37,6 +37,7 @@ class JSONResponse:
     def serialize(o=None, **kwargs):
         is_public = kwargs.pop('public', True)
         aas = kwargs.pop('aas', None)
+        user = kwargs.pop('user_owner', None)
         if o is None:
             d = {}
         elif isinstance(o, dict):
@@ -46,7 +47,7 @@ class JSONResponse:
         elif isinstance(o, list) or isinstance(o, QuerySet):
             d = {aas: []}
             for obj in o:
-                d[aas].append(obj.serialize(is_public))
+                d[aas].append(obj.serialize(is_public, user_owner=user))
                 d.update(kwargs)
         else:
             d = o.serialize(is_public)
