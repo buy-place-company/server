@@ -102,7 +102,7 @@ def venue_action(request):
         'venue': venue.venue.serialize(False),
     }
 
-    return JSONResponse.serialize(res, status=200, public=False)
+    return JSONResponse.serialize(res, status=200, public=False, user_owner=request.user)
 
 
 @csrf_exempt
@@ -239,7 +239,7 @@ def deal_new(request):
         return JSONResponse.serialize(deal, aas='deal', status=204)
 
     deal = Deal.objects.create(venue=venue, user_from=request.user, user_to=venue.owner, amount=amount)
-    return JSONResponse.serialize(deal, aas='deal', status=200)
+    return JSONResponse.serialize(deal, aas='deal', status=200, user_owner=request.user)
 
 
 @csrf_exempt
@@ -267,7 +267,7 @@ def deal_cancel(request):
         return GameError('no_perm')
     deal.date_expire = now()
     deal.save(update_fields=['date_expire', 'state'])
-    return JSONResponse.serialize(deal, aas='deal', status=200)
+    return JSONResponse.serialize(deal, aas='deal', status=200, user_owner=request.user)
 
 
 @csrf_exempt
@@ -317,7 +317,7 @@ def deal_accept(request):
 
     deal.state = STATES[1]
     deal.date_expire = now()
-    return JSONResponse.serialize(deal, aas='deal', status=200)
+    return JSONResponse.serialize(deal, aas='deal', status=200, user_owner=request.user)
 
 def test(request):
     return JSONResponse.serialize(status=200)

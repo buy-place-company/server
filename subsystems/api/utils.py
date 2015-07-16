@@ -47,10 +47,10 @@ class JSONResponse:
         elif isinstance(o, list) or isinstance(o, QuerySet):
             d = {aas: []}
             for obj in o:
-                d[aas].append(obj.serialize(is_public, user_owner=user))
+                d[aas].append(obj.serialize(is_public=is_public, user_owner=user))
                 d.update(kwargs)
         else:
-            d = o.serialize(is_public)
+            d = o.serialize(is_public=is_public, user_owner=user)
             d = {aas: d}
         d.update(kwargs)
         return HttpResponse(json.dumps(d, ensure_ascii=False))

@@ -63,7 +63,7 @@ class Venue(models.Model):
                 "sell_price": round(self.npc_sell_price, 1),
                 "buy_price": round(self.npc_buy_price, 1),
                 "upgrade_price": round(self.upgrade_price, 1),
-                "expense": self.expense,
+                # "expense": self.expense,
                 "loot": self.loot or 0,
                 "income": self.income,
                 "consumption": self.consumption
