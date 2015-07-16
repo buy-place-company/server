@@ -3,7 +3,8 @@ from datetime import datetime, timedelta
 import time
 import logging
 import re
-import multiprocessing as mp
+import threading as mp
+import multiprocessing
 
 from conf import secret
 from conf.settings_game import DEFAULT_CATEGORIES, ZONE_UPDATE_DELTA_HOURS
@@ -11,7 +12,7 @@ from subsystems.db.model_venue import Venue
 from subsystems.foursquare.utils.foursquare_api import Foursquare, FoursquareException
 
 logger = logging.getLogger(__name__)
-SLEEP_4SK = 300
+SLEEP_4SK = 30
 
 
 class Task:
@@ -25,16 +26,16 @@ def add_to_list(queue):
         task = queue.get()
         while task.venue_ids:
             venue = task.venue_ids.pop()
+            dbvenue = Venue.objects.get(venue_id=venue)
+            dbvenue.save()
             try:
                 FoursquareAPI.self.client.lists.additem(list_id=task.list_id, params={'venueId': venue})
+                time.sleep(0.5)
             except FoursquareException as e:
                 logging.warning("[4SK] " + str(e))
                 queue.put(Task(venue_ids=task.venue_ids, list_id=task.list_id))
                 time.sleep(SLEEP_4SK)
                 break
-            dbvenue = Venue.objects.get(venue_id=venue)
-            dbvenue.list_id = task.list_id
-            dbvenue.save()
 
 
 class FoursquareAPI:
@@ -98,25 +99,25 @@ class FoursquareAPI:
         zone.update(lst_id)
 
         if not FoursquareAPI.demon:
-            queue = mp.Queue()
+            queue = multiprocessing.Queue()
             FoursquareAPI.queue = queue
-            FoursquareAPI.demon = mp.Process(target=add_to_list, args=(queue,))
+            FoursquareAPI.demon = mp.Thread(target=add_to_list, args=(queue,))
+            print(FoursquareAPI.demon.start())
 
         FoursquareAPI.queue.put(Task([x['id'] for x in venues], zone.list_id))
 
         for venue in venues:
             dbvenue = FoursquareAPI.venue_from_item(venue, venue['id'])
+            dbvenue.list_id = zone.list_id
             dbvenue.save()
         return zone
 
     @staticmethod
-    def get_venues_from_zone(zone, stop_4sk=False):
+    def get_venues_from_zone(zone):
         if not FoursquareAPI.self:
             FoursquareAPI.self = FoursquareAPI()
 
-        if stop_4sk:
-            return list(Venue.objects.filter(list_id=zone.list_id))
-
+        # FoursquareAPI.update_zone(zone)
         if zone.list_id is None:
             logger.warning("[ZONE] List for zone doesnt exist. zid: %d" % zone.id)
             FoursquareAPI.update_zone(zone)

@@ -28,8 +28,6 @@ def zone_venues(request):
     except SystemGameError as e:
         return GameError('no_args', e.message)
 
-    enable_4sk = bool(request.GET.get('enable', False))
-
     try:
         lat = float(lat)
         lng = float(lng)
@@ -44,7 +42,8 @@ def zone_venues(request):
 
     venues = []
     for z in Zone.objects.get_zones(lat, lng, lat_size, lng_size):
-        venues.extend(FoursquareAPI.get_venues_from_zone(z, stop_4sk=enable_4sk))
+        print(FoursquareAPI.get_venues_from_zone(z))
+        venues.extend(FoursquareAPI.get_venues_from_zone(z))
 
     return JSONResponse.serialize(venues, aas='venues', status=200)
 
