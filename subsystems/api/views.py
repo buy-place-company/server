@@ -169,7 +169,7 @@ def auth_vk(request):
         return GameError('VK_no_auth')
 
     user = User.objects.create_and_auth_vk(request, vk_user_id)
-    return JSONResponse.serialize(user, aas='user', status=200)
+    return JSONResponse.serialize({'id': user.id, 'name': user.name}, status=200)
 
 
 @csrf_exempt
