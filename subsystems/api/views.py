@@ -129,7 +129,7 @@ def user_rating(request):
         return GameError('no_auth')
 
     offset = request.GET.get('offset', 0)
-    order_by = ORDER_BY.get(request.GET.get('param', 'exp'), ORDER_BY['exp'])
+    order_by = ORDER_BY.get(request.GET.get('param', 'score'), ORDER_BY['score'])
 
     if order_by is None:
         order_by = 'cash'
