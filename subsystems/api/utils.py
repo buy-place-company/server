@@ -36,12 +36,12 @@ class JSONResponse:
     @staticmethod
     def serialize(o=None, **kwargs):
         is_public = kwargs.pop('public', True)
-        aas = kwargs.pop('aas', 'data')
+        aas = kwargs.pop('aas', None)
         if o is None:
             d = {}
         elif isinstance(o, dict):
             d = o.copy()
-            d = {aas: d}
+            d = {aas: d} if aas else d
             d.update(kwargs)
         elif isinstance(o, list) or isinstance(o, QuerySet):
             d = {aas: []}

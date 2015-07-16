@@ -64,7 +64,7 @@ def venue_info(request):
     if venue is None:
         return GameError('no_venue')
 
-    return JSONResponse.serialize(venue, aas='objects', status=200)
+    return JSONResponse.serialize(venue, aas='venue', status=200)
 
 
 @csrf_exempt
@@ -98,7 +98,12 @@ def venue_action(request):
     except InDeal:
         return GameError('in_deal')
 
-    return JSONResponse.serialize(request.user, aas='user', status=200, public=False)
+    res = {
+        'user': request.user.serialize(False),
+        'venue': venue.venue.serialize(False),
+    }
+
+    return JSONResponse.serialize(res, status=200, public=False)
 
 
 @csrf_exempt
@@ -115,7 +120,7 @@ def user_venues(request):
         return GameError('no_auth')
 
     objs = Venue.objects.filter(owner=request.user)
-    return JSONResponse.serialize(list(objs), aas='objects', status=200, public=False)
+    return JSONResponse.serialize(list(objs), aas='venues', status=200, public=False)
 
 
 @csrf_exempt
