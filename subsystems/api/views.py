@@ -298,8 +298,8 @@ def deal_accept(request):
         deal.user_to.cash -= deal.amount
         deal.user_to.score += deal.venue.expense
         deal.user_to.buildings_count += 1
-        deal.user_from.cash += deal.venue.price
-        deal.user_from.score -= deal.venue.price if deal.user_from.score >= deal.venue.price else 0
+        deal.user_from.cash += deal.venue.expense
+        deal.user_from.score -= deal.venue.expense if deal.user_from.score >= deal.venue.expense else 0
         deal.user_from.buildings_count -= 1 if deal.user_from.buildings_count > 0 else 0
         deal.venue.save()
         deal.user_to.save()
