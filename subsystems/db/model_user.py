@@ -59,7 +59,7 @@ class User(models.Model):
     # private
     cash = models.IntegerField(default=0)
 
-    def serialize(self, is_public=True):
+    def serialize(self, is_public=True, **kwargs):
         response = {
             "id": self.id,
             "username": self.name,

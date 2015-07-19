@@ -26,7 +26,7 @@ def post_params(request, *args):
     params = []
     for arg in args:
         try:
-            params.append(request.GET[arg])
+            params.append(request.POST[arg])
         except KeyError:
             raise SystemGameError(message=arg)
     return params
@@ -36,20 +36,21 @@ class JSONResponse:
     @staticmethod
     def serialize(o=None, **kwargs):
         is_public = kwargs.pop('public', True)
-        aas = kwargs.pop('aas', 'data')
+        aas = kwargs.pop('aas', None)
+        user = kwargs.pop('user_owner', None)
         if o is None:
             d = {}
         elif isinstance(o, dict):
             d = o.copy()
-            d = {aas: d}
+            d = {aas: d} if aas else d
             d.update(kwargs)
         elif isinstance(o, list) or isinstance(o, QuerySet):
             d = {aas: []}
             for obj in o:
-                d[aas].append(obj.serialize(is_public))
+                d[aas].append(obj.serialize(is_public=is_public, user_owner=user))
                 d.update(kwargs)
         else:
-            d = o.serialize(is_public)
+            d = o.serialize(is_public=is_public, user_owner=user)
             d = {aas: d}
         d.update(kwargs)
         return HttpResponse(json.dumps(d, ensure_ascii=False))
@@ -112,7 +113,7 @@ class VenueView:
         return self.venue.get(item)
 
     def buy(self, user):
-        if user.cash < self.venue.price:
+        if user.cash < self.venue.expense:
             raise NoMoneyError
 
         if self.venue.owner == user:
@@ -122,8 +123,8 @@ class VenueView:
             raise HasOwnerAlready
 
         self.venue.owner = user
-        user.cash -= self.venue.price
-        user.score += self.venue.price
+        user.cash -= self.venue.npc_buy_price
+        user.score += self.venue.expense
         user.buildings_count += 1
         user.save()
         self.venue.save()
@@ -132,25 +133,23 @@ class VenueView:
         if self.venue.owner != user:
             raise UDontHaveIt
 
-        if Deal.objects.get(venue=self.venue):
+        if Deal.objects.filter(venue=self.venue):
             raise InDeal
         self.venue.owner = None
-        user.cash += self.venue.price
-        user.score -= self.venue.price if user.score >= self.venue.price else 0
+        user.cash += self.venue.npc_sell_price
+        user.score -= self.venue.expense if user.score >= self.venue.expense else 0
         user.buildings_count -= 1 if user.buildings_count > 0 else 0
         user.save()
         self.venue.save()
 
     def upgrade(self, user):
-        price = self.venue.price * (1 + self.venue.lvl ** 1.1) / (1 + self.venue.lvl) * (1 - DUTY)
-
         if self.venue.owner != user:
             raise UDontHaveIt
 
-        if user.cash < price:
+        if user.cash < self.venue.upgrade_price:
             raise NoMoneyError
 
-        user.cash -= price
-        user.score += price
+        user.cash -= self.venue.upgrade_price
+        user.score += self.venue.upgrade_price
         user.save()
         self.venue.save()

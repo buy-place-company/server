@@ -41,7 +41,8 @@ class Venue(models.Model):
     updatable = VenueManager()
     objects = models.Manager()
 
-    def serialize(self, is_public=True):
+    def serialize(self, is_public=True, **kwargs):
+        user = kwargs.pop('user_owner', None)
         response = {
             "id": self.venue_id,
             "stats": {
@@ -56,13 +57,13 @@ class Venue(models.Model):
             "latitude": round(self.lat, 3),
             "longitude": round(self.lng, 3),
         }
-        if not is_public and self.owner is not None:
+        if self.owner is not None and (not is_public or self.owner == user):
             response.update({
                 "max_loot": round(self.max_loot, 1),
                 "sell_price": round(self.npc_sell_price, 1),
                 "buy_price": round(self.npc_buy_price, 1),
                 "upgrade_price": round(self.upgrade_price, 1),
-                "expense": self.expense,
+                # "expense": self.expense,
                 "loot": self.loot or 0,
                 "income": self.income,
                 "consumption": self.consumption

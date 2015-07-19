@@ -27,6 +27,7 @@ def zone_venues(request):
         lat, lng = get_params(request, 'lat', 'lng')
     except SystemGameError as e:
         return GameError('no_args', e.message)
+
     try:
         lat = float(lat)
         lng = float(lng)
@@ -41,9 +42,10 @@ def zone_venues(request):
 
     venues = []
     for z in Zone.objects.get_zones(lat, lng, lat_size, lng_size):
-        venues.extend(FoursquareAPI.get_venues_from_zone(z, stop_4sk=True))
+        print(FoursquareAPI.get_venues_from_zone(z))
+        venues.extend(FoursquareAPI.get_venues_from_zone(z))
 
-    return JSONResponse.serialize(venues, aas='venues', status=200)
+    return JSONResponse.serialize(venues, user_owner=request.user, aas='venues', status=200)
 
 
 @csrf_exempt
@@ -61,7 +63,7 @@ def venue_info(request):
     if venue is None:
         return GameError('no_venue')
 
-    return JSONResponse.serialize(venue, aas='objects', status=200)
+    return JSONResponse.serialize(venue, aas='venue', status=200)
 
 
 @csrf_exempt
@@ -95,7 +97,12 @@ def venue_action(request):
     except InDeal:
         return GameError('in_deal')
 
-    return JSONResponse.serialize(request.user, aas='user', status=200, public=False)
+    res = {
+        'user': request.user.serialize(False),
+        'venue': venue.venue.serialize(False),
+    }
+
+    return JSONResponse.serialize(res, status=200, public=False, user_owner=request.user)
 
 
 @csrf_exempt
@@ -112,7 +119,7 @@ def user_venues(request):
         return GameError('no_auth')
 
     objs = Venue.objects.filter(owner=request.user)
-    return JSONResponse.serialize(list(objs), aas='objects', status=200, public=False)
+    return JSONResponse.serialize(list(objs), aas='venues', status=200, public=False)
 
 
 @csrf_exempt
@@ -121,7 +128,7 @@ def user_rating(request):
         return GameError('no_auth')
 
     offset = request.GET.get('offset', 0)
-    order_by = ORDER_BY.get(request.GET.get('param', 'exp'), ORDER_BY['exp'])
+    order_by = ORDER_BY.get(request.GET.get('param', 'score'), ORDER_BY['score'])
 
     if order_by is None:
         order_by = 'cash'
@@ -162,7 +169,7 @@ def auth_vk(request):
         return GameError('VK_no_auth')
 
     user = User.objects.create_and_auth_vk(request, vk_user_id)
-    return JSONResponse.serialize(user, aas='user', status=200)
+    return JSONResponse.serialize({'id': user.id, 'name': user.name}, status=200)
 
 
 @csrf_exempt
@@ -232,7 +239,7 @@ def deal_new(request):
         return JSONResponse.serialize(deal, aas='deal', status=204)
 
     deal = Deal.objects.create(venue=venue, user_from=request.user, user_to=venue.owner, amount=amount)
-    return JSONResponse.serialize(deal, aas='deal', status=200)
+    return JSONResponse.serialize(deal, aas='deal', status=200, user_owner=request.user)
 
 
 @csrf_exempt
@@ -260,7 +267,7 @@ def deal_cancel(request):
         return GameError('no_perm')
     deal.date_expire = now()
     deal.save(update_fields=['date_expire', 'state'])
-    return JSONResponse.serialize(deal, aas='deal', status=200)
+    return JSONResponse.serialize(deal, aas='deal', status=200, user_owner=request.user)
 
 
 @csrf_exempt
@@ -295,8 +302,8 @@ def deal_accept(request):
         deal.user_to.cash -= deal.amount
         deal.user_to.score += deal.venue.expense
         deal.user_to.buildings_count += 1
-        deal.user_from.cash += deal.venue.price
-        deal.user_from.score -= deal.venue.price if deal.user_from.score >= deal.venue.price else 0
+        deal.user_from.cash += deal.venue.expense
+        deal.user_from.score -= deal.venue.expense if deal.user_from.score >= deal.venue.expense else 0
         deal.user_from.buildings_count -= 1 if deal.user_from.buildings_count > 0 else 0
         deal.venue.save()
         deal.user_to.save()
@@ -310,7 +317,7 @@ def deal_accept(request):
 
     deal.state = STATES[1]
     deal.date_expire = now()
-    return JSONResponse.serialize(deal, aas='deal', status=200)
+    return JSONResponse.serialize(deal, aas='deal', status=200, user_owner=request.user)
 
 def test(request):
     return JSONResponse.serialize(status=200)
