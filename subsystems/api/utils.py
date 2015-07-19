@@ -8,11 +8,11 @@ from subsystems.db.model_deal import Deal
 from subsystems.db.model_venue import Venue
 from subsystems.db.model_zone import Zone
 from subsystems.foursquare.api import Foursquare
-from conf.settings_game import DEFAULT_CATEGORIES, DUTY
+from conf.settings_game import DEFAULT_CATEGORIES
 from subsystems.foursquare.utils.foursquare_api import ServerError
 
 
-def get_params(request, *args):
+def get_params_native(request, *args):
     params = []
     for arg in args:
         try:
@@ -22,7 +22,7 @@ def get_params(request, *args):
     return params
 
 
-def post_params(request, *args):
+def post_params_native(request, *args):
     params = []
     for arg in args:
         try:
@@ -30,6 +30,26 @@ def post_params(request, *args):
         except KeyError:
             raise SystemGameError(message=arg)
     return params
+
+
+def get_params(request, *args):
+    try:
+        return get_params_native(request, *args)
+    except SystemGameError as e:
+        try:
+            return post_params_native(request, *args)
+        except SystemGameError:
+            raise e
+
+
+def post_params(request, *args):
+    try:
+        return post_params_native(request, *args)
+    except SystemGameError as e:
+        try:
+            return get_params_native(request, *args)
+        except SystemGameError:
+            raise e
 
 
 class JSONResponse:
