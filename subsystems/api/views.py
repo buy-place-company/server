@@ -200,12 +200,12 @@ def deal_info(request):
         return GameError('no_auth')
 
     try:
-        deal_id = get_params(request, 'deal_id')
+        deal_id, = get_params(request, 'deal_id')
     except SystemGameError as e:
         return GameError('no_args', e.message)
 
     try:
-        deal = Deal.objects.get(pk=deal_id)
+        deal = Deal.objects.get(id=deal_id)
     except Deal.DoesNotExist:
         return GameError('no_deal')
 
@@ -248,12 +248,12 @@ def deal_cancel(request):
         return GameError('no_auth')
 
     try:
-        deal_id = get_params(request, 'deal_id')
+        deal_id, = get_params(request, 'deal_id')
     except SystemGameError as e:
         return GameError('no_args', e.message)
 
     try:
-        deal = Deal.objects.get(venue=deal_id, user_from=request.user)
+        deal = Deal.objects.get(id=deal_id)
     except Deal.DoesNotExist:
         return GameError('no_deal')
 
@@ -276,12 +276,13 @@ def deal_accept(request):
         return GameError('no_auth')
 
     try:
-        deal_id = get_params(request,  'deal_id')
+        deal_id, = get_params(request,  'deal_id')
+        print(deal_id)
     except SystemGameError as e:
         return GameError('no_args', e.message)
 
     try:
-        deal = Deal.objects.get(venue=deal_id, user_from=request.user)
+        deal = Deal.objects.get(id=deal_id)
     except Deal.DoesNotExist:
         return GameError('no_deal')
 
