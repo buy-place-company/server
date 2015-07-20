@@ -276,7 +276,7 @@ def deal_accept(request):
         return GameError('no_auth')
 
     try:
-        deal_id = get_params(request, 'venue_id', 'amount')
+        deal_id = get_params(request,  'deal_id')
     except SystemGameError as e:
         return GameError('no_args', e.message)
 
