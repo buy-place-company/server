@@ -28,7 +28,7 @@ class Deal(models.Model):
     date_added = models.DateTimeField(help_text='Дата предложения')
     date_expire = models.DateTimeField(help_text='Дата истечения срока предложения')
     state = models.CharField(help_text='Состояние', max_length=10, choices=STATES, default=False)
-    type = models.CharField(help_text='Тип предложения', max_length=10, choices=STATES, default=False)
+    dtype = models.CharField(help_text='Тип предложения', max_length=10, choices=TYPES, default=False)
     is_public = models.BooleanField(help_text='Доступна всем?', default=False)
 
     def serialize(self, user=None, **kwargs):
@@ -40,6 +40,8 @@ class Deal(models.Model):
             'amount': self.amount,
             'date_added': str(self.date_added.strftime('%Y-%m-%d %H:%M:%S')),
             'date_expired': str(self.date_expire.strftime('%Y-%m-%d %H:%M:%S')),
+            'type': self.get_dtype_display(),
+            'status': self.get_state_display()
         }
 
     def save(self, force_insert=False, force_update=False, using=None,
