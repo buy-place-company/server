@@ -11,11 +11,12 @@ TIME_DELTA = 30
 
 class VenueManager(models.Manager):
     def get_queryset(self):
-        set = super(VenueManager, self).get_queryset()
+        ret = super(VenueManager, self).get_queryset()
+        set = ret.filter(owner_id__gte=0,
+                         last_update__lte=(datetime.now().timestamp() - timedelta(seconds=TIME_DELTA).total_seconds()))
         for obj in set:
-            if obj.last_update + timedelta(seconds=TIME_DELTA).total_seconds() <= datetime.now().timestamp():
                 obj.update()
-        return set
+        return ret
 
 
 class Venue(models.Model):
@@ -35,11 +36,11 @@ class Venue(models.Model):
     lng = models.FloatField(default=0)
 
     # private information
-    loot = models.IntegerField(null=True)
+    loot = models.IntegerField(default=0)
 
     # Managers
     updatable = VenueManager()
-    objects = models.Manager()
+    objects = VenueManager()
 
     def serialize(self, is_public=True, **kwargs):
         user = kwargs.pop('user_owner', None)
@@ -110,6 +111,7 @@ class Venue(models.Model):
         if self.owner:
             if self.owner.cash + self.income > self.consumption:
                 inc = round((self.income - self.consumption) % 3600 * div)
+                print(self.venue_id, inc)
                 if inc > 0:
                     if self.max_loot >= self.loot + inc:
                         self.loot += inc
@@ -119,6 +121,7 @@ class Venue(models.Model):
                     self.owner.cash += inc
             else:
                 self.owner.cash = 0
+            self.last_update = datetime.now().timestamp()
             self.save()
 
     def save(self, *args, **kwargs):
