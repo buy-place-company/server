@@ -1,10 +1,11 @@
 import json
 import datetime
+
 from django.db.models import QuerySet
 from django.http import HttpResponse
+
 from conf import secret
-from subsystems.api.errors import NoMoneyError, HasOwnerAlready, UHaveIt, UDontHaveIt, SystemGameError, InDeal
-from subsystems.db.model_deal import Deal
+from subsystems.api.errors import NoMoneyError, HasOwnerAlready, UHaveIt, UDontHaveIt, SystemGameError
 from subsystems.db.model_venue import Venue
 from subsystems.db.model_zone import Zone
 from subsystems.foursquare.api import Foursquare

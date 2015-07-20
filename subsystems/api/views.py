@@ -51,12 +51,14 @@ def zone_venues(request):
 @csrf_exempt
 def venue_info(request):
     try:
-        venue_id = get_params(request, 'venue_id')
+        venue_id, = get_params(request, 'venue_id')
     except SystemGameError as e:
         return GameError('no_args', e.message)
 
     try:
+        print(venue_id)
         venue = Venue.objects.get(venue_id=venue_id)
+        print(1)
     except Venue.DoesNotExist:
         return GameError('no_venue')
 
