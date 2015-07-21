@@ -134,11 +134,12 @@ def user_rating(request):
 
     offset = int(request.GET.get('offset', 0))
     order_by = ORDER_BY.get(request.GET.get('param', 'score'), ORDER_BY['score'])
+    limit = int(request.GET.get('limit', 20))
 
     if order_by is None:
-        order_by = 'cash'
+        order_by = 'score'
 
-    users = User.objects.all().order_by("-" + order_by)[offset:offset + 20]
+    users = User.objects.all().order_by("-" + order_by)[offset:offset + limit]
     return JSONResponse.serialize(users, aas='users', status=200,
                                   user={'user': request.user.serialize(is_public=False)})
 
