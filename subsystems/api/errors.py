@@ -15,6 +15,10 @@ ERRORS = {
     'VK_no_auth': {'status': 105, 'message': '[VK] HTTP Error 401: Unauthorized'},
     'VK': {'status': 105, 'message': '[VK] %s'},
 
+    # auth errors
+    'user_already_exists': {'status': 601, 'message': '[AUTH] User already exists'},
+    'user_not_exists': {'status': 602, 'message': '[AUTH] User does not exists or password is wrong'},
+
     # Game errors
     'no_money': {'status': 201, 'message': '[GAME] No money for this action'},
     'owner_exists': {'status': 202, 'message': '[GAME] The building has owner already'},
@@ -55,6 +59,7 @@ class LogWarning:
 
     def __unicode__(self):
         return self.message
+
 
 class GameError(HttpResponse):
     def __init__(self, code, message_params=None):

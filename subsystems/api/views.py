@@ -147,7 +147,7 @@ def user_rating(request):
 @csrf_exempt
 def auth_vk(request):
     try:
-        code = request.GET['code']
+        code, = get_params(request, 'code')
     except (KeyError, ValueError, TypeError):
         return GameError('no_auth')
 
@@ -173,7 +173,24 @@ def auth_vk(request):
     except (KeyError, ValueError, TypeError):
         return GameError('VK_no_auth')
 
-    user = User.objects.create_and_auth_vk(request, vk_user_id)
+    try:
+        user = User.objects.get(vk_id=vk_user_id)
+        user = User.objects.auth(request, user)
+    except User.DoesNotExist:
+        url = \
+            "https://api.vk.com/method/users.get?" + \
+            "user_ids=%d&" % vk_user_id + \
+            "v=5.33"
+
+        try:
+            conn = urllib.request.urlopen(url)
+            data = json.loads(conn.read().decode('utf_8'))['response']
+            name = '{0} {1}'.format(data[0]['first_name'], data[0]['last_name'])
+        except:
+            name = ''
+
+        user = User.objects.create_and_auth_vk(request, vk_user_id, name)
+
     return JSONResponse.serialize({'id': user.id, 'name': user.name}, status=200)
 
 
@@ -181,6 +198,38 @@ def auth_vk(request):
 def auth_logout(request):
     logout(request)
     return JSONResponse.serialize(status=200)
+
+
+@csrf_exempt
+def auth_signup(request):
+    try:
+        email, password, name = post_params(request, 'email', 'password', 'name')
+    except SystemGameError as e:
+        return GameError('no_args', e.message)
+
+    try:
+        user = User.objects.create_and_auth_email(request, email, password, name)
+    except:
+        return GameError('user_already_exists')
+
+    return JSONResponse.serialize({'id': user.id, 'name': user.name}, status=200)
+
+
+@csrf_exempt
+def auth_email(request):
+    try:
+        email, password = post_params(request, 'email', 'password')
+    except SystemGameError as e:
+        return GameError('no_args', e.message)
+
+    try:
+        email = User.objects.normalize_email(email)
+        user = User.objects.get(email=email)
+        user = User.objects.auth(request, user, password=password)
+    except User.DoesNotExist:
+        return GameError('user_not_exists')
+
+    return JSONResponse.serialize({'id': user.id, 'name': user.name}, status=200)
 
 
 @csrf_exempt
