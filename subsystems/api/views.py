@@ -140,7 +140,7 @@ def user_rating(request):
 
     users = User.objects.all().order_by("-" + order_by)[offset:offset + 20]
     return JSONResponse.serialize(users, aas='users', status=200,
-                                  user={'name': request.user.serialize(is_public=True)})
+                                  user={'user': request.user.serialize(is_public=False)})
 
 
 @csrf_exempt
