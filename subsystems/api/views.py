@@ -132,16 +132,16 @@ def user_rating(request):
     if not request.user.is_authenticated():
         return GameError('no_auth')
 
-    offset = request.GET.get('offset', 0)
+    offset = int(request.GET.get('offset', 0))
     order_by = ORDER_BY.get(request.GET.get('param', 'score'), ORDER_BY['score'])
+    limit = int(request.GET.get('limit', 20))
 
     if order_by is None:
-        order_by = 'cash'
+        order_by = 'score'
 
-    users = User.objects.all().order_by("-" + order_by)[offset:offset + 20]
+    users = User.objects.all().order_by("-" + order_by)[offset:offset + limit]
     return JSONResponse.serialize(users, aas='users', status=200,
-                                  user={'name': request.user.name, order_by: getattr(request.user, order_by),
-                                        'pos': 2342352353452345234})
+                                  user={'user': request.user.serialize(is_public=False)})
 
 
 @csrf_exempt
