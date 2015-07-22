@@ -42,7 +42,6 @@ def zone_venues(request):
 
     venues = []
     for z in Zone.objects.get_zones(lat, lng, lat_size, lng_size):
-        print(FoursquareAPI.get_venues_from_zone(z))
         venues.extend(FoursquareAPI.get_venues_from_zone(z))
 
     return JSONResponse.serialize(venues, user_owner=request.user, aas='venues', status=200)
@@ -140,8 +139,8 @@ def user_rating(request):
         order_by = 'score'
 
     users = User.objects.all().order_by("-" + order_by)[offset:offset + limit]
-    return JSONResponse.serialize(users, aas='users', status=200,
-                                  user={'user': request.user.serialize(is_public=False)})
+    return JSONResponse.serialize(users, aas='users', status=200, user={'user': request.user.serialize(is_public=False)},
+                                  user_owner=request.user)
 
 
 @csrf_exempt

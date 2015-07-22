@@ -60,6 +60,7 @@ class User(models.Model):
     cash = models.IntegerField(default=0)
 
     def serialize(self, is_public=True, **kwargs):
+        user = kwargs.pop('user_owner', None)
         response = {
             "id": self.id,
             "username": self.name,
@@ -70,7 +71,7 @@ class User(models.Model):
             "max_objects": self.max_objects,
         }
 
-        if not is_public:
+        if not is_public or user and user == self:
             response.update({
                 "cash": self.cash,
             })
