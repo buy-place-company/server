@@ -225,6 +225,8 @@ def auth_email(request):
         email = User.objects.normalize_email(email)
         user = User.objects.get(email=email)
         user = User.objects.auth(request, user, password=password)
+        if user is None:
+            return GameError('user_not_exists')
     except User.DoesNotExist:
         return GameError('user_not_exists')
 
