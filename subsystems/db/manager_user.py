@@ -48,6 +48,8 @@ class UserManager(models.Manager):
     def auth(self, request, user, **kwargs):
         if 'password' in kwargs:
             user = authenticate(id=user.id, password=kwargs['password'])
+            if user is None:
+                return None
         else:
             user.backend = self.DEFAULT_AUTH_BACKEND
         login(request, user)
