@@ -173,7 +173,7 @@ def auth_vk(request):
         return GameError('VK_no_auth')
 
     try:
-        user = User.objects.get(vk_id=vk_user_id)
+        user = User.objects.get(id_vk=vk_user_id)
         user = User.objects.auth(request, user)
     except User.DoesNotExist:
         url = \
