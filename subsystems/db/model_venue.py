@@ -54,10 +54,11 @@ class Venue(models.Model):
             "name": self.name,
             "category": self.category,
             "lvl": self.lvl,
-            "owner": self.owner.serialize() if self.owner else None,
+            "owner": self.owner.serialize(user_owner=user) if self.owner else None,
             "latitude": round(self.lat, 3),
             "longitude": round(self.lng, 3),
         }
+        print(self.owner, self.owner == user)
         if self.owner is not None and (not is_public or self.owner == user):
             response.update({
                 "max_loot": round(self.max_loot, 1),

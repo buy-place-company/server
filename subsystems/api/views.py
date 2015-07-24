@@ -123,7 +123,7 @@ def user_venues(request):
         user_id = request.user
 
     objs = Venue.objects.filter(owner=user_id)
-    return JSONResponse.serialize(list(objs), aas='venues', status=200, public=(request.user.id == user_id))
+    return JSONResponse.serialize(list(objs), aas='venues', status=200, user_owner=request.user)
 
 
 @csrf_exempt
