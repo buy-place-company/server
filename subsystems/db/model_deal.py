@@ -31,12 +31,12 @@ class Deal(models.Model):
     dtype = models.CharField(help_text='Тип предложения', max_length=10, choices=TYPES)
     is_public = models.BooleanField(help_text='Доступна всем?', default=False)
 
-    def serialize(self, user=None, **kwargs):
+    def serialize(self, user_owner=None, **kwargs):
         return {
             'id': self.pk,
-            'venue': self.venue.serialize(is_public=(user == self.user_from) if user and self.user_from else False),
-            'user_from': self.user_from.serialize(is_public=(user == self.user_from) if user and self.user_from else False),
-            'user_to': self.user_to.serialize(is_public=(user == self.user_to) if user and self.user_to else False),
+            'venue': self.venue.serialize(user_owner=user_owner),
+            'user_from': self.user_from.serialize(user_owner=user_owner),
+            'user_to': self.user_to.serialize(user_owner=user_owner),
             'amount': self.amount,
             'date_added': str(self.date_added.strftime('%Y-%m-%d %H:%M:%S')),
             'date_expired': str(self.date_expire.strftime('%Y-%m-%d %H:%M:%S')),

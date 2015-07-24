@@ -238,8 +238,8 @@ def user_deals(request):
     if not request.user.is_authenticated():
         return GameError('no_auth')
 
-    deals_out = [x.serialize() for x in Deal.objects.filter(user_from=request.user)]
-    deals_in = [x.serialize() for x in Deal.objects.filter(user_to=request.user)]
+    deals_out = [x.serialize(user_owner=request.user) for x in Deal.objects.filter(user_from=request.user)]
+    deals_in = [x.serialize(user_owner=request.user) for x in Deal.objects.filter(user_to=request.user)]
 
     d = {
         'outgoing': deals_out,
@@ -265,7 +265,7 @@ def deal_info(request):
         return GameError('no_deal')
 
     if request.user == deal.user_from or request.user == deal.user_to or deal.is_public:
-        return JSONResponse.serialize(deal, aas='deal', status=200)
+        return JSONResponse.serialize(deal, aas='deal', status=200, user_owner=request.user)
     else:
         return GameError('no_deal')
 
@@ -295,7 +295,7 @@ def deal_new(request):
     except Deal.DoesNotExist:
         pass
     else:
-        return JSONResponse.serialize(deal, aas='deal', status=204)
+        return JSONResponse.serialize(deal, aas='deal', status=204, user_owner=request.user)
 
     deal = Deal.objects.create(venue=venue, user_from=request.user, user_to=venue.owner, amount=amount,
                                state=STATES[0][0], dtype=dtype, is_public=is_pub)

@@ -58,7 +58,6 @@ class Venue(models.Model):
             "latitude": round(self.lat, 3),
             "longitude": round(self.lng, 3),
         }
-        print(self.owner, self.owner == user)
         if self.owner is not None and (not is_public or self.owner == user):
             response.update({
                 "max_loot": round(self.max_loot, 1),
