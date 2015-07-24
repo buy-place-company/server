@@ -174,3 +174,13 @@ class VenueView:
         user.score += self.venue.upgrade_price
         user.save()
         self.venue.save()
+
+    def collect_loot(self, user):
+        if self.venue.owner != user:
+            raise UDontHaveIt
+
+        self.venue.update()
+        user.cash += self.venue.loot
+        self.venue.loot = 0
+        user.save()
+        self.venue.save()
