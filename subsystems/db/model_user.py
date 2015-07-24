@@ -80,7 +80,7 @@ class User(models.Model):
 
     @property
     def lvl(self):
-        return bisect.bisect_right(EXP_MAP, int(self.score))
+        return bisect.bisect_right(EXP_MAP, int(self.score / 1000))
 
     @property
     def max_objects(self):

@@ -97,8 +97,8 @@ def venue_action(request):
         return GameError('in_deal')
 
     res = {
-        'user': request.user.serialize(False),
-        'venue': venue.venue.serialize(False),
+        'user': request.user.serialize(user_owner=request.user),
+        'venue': venue.venue.serialize(user_owner=request.user),
     }
 
     return JSONResponse.serialize(res, status=200, public=False, user_owner=request.user)
