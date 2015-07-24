@@ -173,6 +173,7 @@ class VenueView:
         user.cash -= self.venue.upgrade_price
         user.score += self.venue.upgrade_price
         user.save()
+        self.venue.lvl += 1
         self.venue.save()
 
     def collect_loot(self, user):

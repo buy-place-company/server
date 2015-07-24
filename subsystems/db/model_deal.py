@@ -23,7 +23,7 @@ TYPES = (
 class Deal(models.Model):
     venue = models.ForeignKey(Venue, to_field='venue_id', help_text='Сделка на здание')
     user_from = models.ForeignKey(User, help_text="Сделку предложил", related_name='user_from')
-    user_to = models.ForeignKey(User, help_text="Сделку предложили", related_name='user_ro')
+    user_to = models.ForeignKey(User, help_text="Сделку предложили", related_name='user_ro', null=True)
     amount = models.IntegerField(help_text='Сумма сделки')
     date_added = models.DateTimeField(help_text='Дата предложения')
     date_expire = models.DateTimeField(help_text='Дата истечения срока предложения')
@@ -32,11 +32,12 @@ class Deal(models.Model):
     is_public = models.BooleanField(help_text='Доступна всем?', default=False)
 
     def serialize(self, user_owner=None, **kwargs):
+        print(self.user_to)
         return {
             'id': self.pk,
             'venue': self.venue.serialize(user_owner=user_owner),
             'user_from': self.user_from.serialize(user_owner=user_owner),
-            'user_to': self.user_to.serialize(user_owner=user_owner),
+            'user_to': self.user_to.serialize(user_owner=user_owner) if self.user_to is not None else None,
             'amount': self.amount,
             'date_added': str(self.date_added.strftime('%Y-%m-%d %H:%M:%S')),
             'date_expired': str(self.date_expire.strftime('%Y-%m-%d %H:%M:%S')),
