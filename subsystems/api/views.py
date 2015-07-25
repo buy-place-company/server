@@ -308,7 +308,7 @@ def deal_new(request):
         return_type=JSONResponse.RETURN_TYPE_DICT
     )
 
-    devices = Device.objects.filter(user=request.user)
+    devices = Device.objects.filter(user=venue.owner)
     devices.send_message(push)
 
     return resp
