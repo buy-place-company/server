@@ -1,6 +1,7 @@
 import json
 import logging
 import urllib.request
+from django.contrib.contenttypes.models import ContentType
 
 from django.views.decorators.csrf import csrf_exempt
 from django.utils.timezone import now
@@ -259,7 +260,7 @@ def user_deals(request):
 @auth_required
 def user_bookmarks(request):
     bookmarks = Bookmark.objects.filter(user=request.user)
-    return JSONResponse.serialize(o=bookmarks, aas='deals', status=200)
+    return JSONResponse.serialize(o=bookmarks, aas='bookmarks', status=200)
 
 
 @csrf_exempt
@@ -405,16 +406,17 @@ def deal_accept(request):
 @auth_required
 def bookmark_new(request):
     try:
-        str_type, id = post_params(request, ['type', 'id'])
+        str_type, id = post_params(request, 'type', 'id')
     except SystemGameError as e:
-        return GameError('no_args', e.message)
+        print(type(e))
+        return GameError('no_args', message_params=e.message)
 
     for m in model_classes:
-        if str(m) == str_type:
+        if str(ContentType.objects.get_for_model(m)) == str_type:
             dtype = m
             break
     else:
-        return GameError('wrong_args', 'type')
+        return GameError('wrong_args', message_params='type')
 
     if dtype is Venue:
         try:
@@ -426,16 +428,17 @@ def bookmark_new(request):
             obj = dtype.objects.get(id=id)
         except dtype.DoesNotExist:
             return GameError('wrong_args', 'id')
-    Bookmark.objects.get_or_create(user=request.user, content_object=obj, is_autocreated=False)
+    obj = Bookmark.objects.get_or_create(user=request.user, content_object=obj, is_autocreated=False)
+    return JSONResponse.serialize(obj, aas='bookmark', status=200)
 
 
 @csrf_exempt
 @auth_required
 def bookmark_delete(request):
     try:
-        id, = post_params(request, ('id',))
+        id, = post_params(request, 'id')
     except SystemGameError as e:
-        return GameError('no_args', e.message)
+        return GameError('no_args', message_params=e.message)
     try:
         obj = Bookmark.objects.get(pk=id)
     except Bookmark.DoesNotExist:
@@ -450,7 +453,7 @@ def push_reg(request):
     try:
         reg_id, = post_params(request, 'reg_id')
     except SystemGameError as e:
-        return GameError('no_args', e.message)
+        return GameError('no_args', message_params=e.message)
 
     Device.objects.create(reg_id=reg_id, user=request.user)
     return JSONResponse.serialize(status=200)
@@ -462,7 +465,7 @@ def push_unreg(request):
     try:
         reg_id, = post_params(request, 'reg_id')
     except SystemGameError as e:
-        return GameError('no_args', e.message)
+        return GameError('no_args', message_params=e.message)
 
     device = Device.objects.get(reg_id=reg_id)
     device.clear()

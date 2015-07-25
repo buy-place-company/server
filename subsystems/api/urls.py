@@ -39,7 +39,7 @@ urlpatterns = patterns('subsystems.api.views',
     url(r'^deals/info$', 'deal_info'),
 
     url(r'^bookmark/new$', 'bookmark_new'),
-    url(r'^bookmark/delete$', 'bookmark_dekete'),
+    url(r'^bookmark/delete$', 'bookmark_delete'),
 
     url(r'^push/reg$', 'push_reg'),
     url(r'^push/unreg$', 'push_unreg'),
