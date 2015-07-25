@@ -24,6 +24,7 @@ logger = logging.getLogger(__name__)
 
 
 @csrf_exempt
+@auth_required
 def zone_venues(request):
     try:
         lat, lng = get_params(request, 'lat', 'lng')
@@ -50,6 +51,7 @@ def zone_venues(request):
 
 
 @csrf_exempt
+@auth_required
 def venue_info(request):
     try:
         venue_id, = get_params(request, 'venue_id')
@@ -68,10 +70,8 @@ def venue_info(request):
 
 
 @csrf_exempt
+@auth_required
 def venue_action(request):
-    if not request.user.is_authenticated():
-        return GameError('no_auth')
-
     try:
         action, venue_id = post_params(request, 'action', 'venue_id')
     except SystemGameError as e:
@@ -107,18 +107,14 @@ def venue_action(request):
 
 
 @csrf_exempt
+@auth_required
 def user_profile(request):
-    if not request.user.is_authenticated():
-        return GameError('no_auth')
-
     return JSONResponse.serialize(request.user, aas='user', status=200, public=False)
 
 
 @csrf_exempt
+@auth_required
 def user_venues(request):
-    if not request.user.is_authenticated():
-        return GameError('no_auth')
-
     try:
         user_id, = get_params(request, 'user_id')
     except SystemGameError as e:
@@ -129,10 +125,8 @@ def user_venues(request):
 
 
 @csrf_exempt
+@auth_required
 def user_rating(request):
-    if not request.user.is_authenticated():
-        return GameError('no_auth')
-
     offset = int(request.GET.get('offset', 0))
     order_by = ORDER_BY.get(request.GET.get('param', 'score'), ORDER_BY['score'])
     limit = int(request.GET.get('limit', 20))
@@ -196,6 +190,7 @@ def auth_vk(request):
 
 
 @csrf_exempt
+@auth_required
 def auth_logout(request):
     logout(request)
     return JSONResponse.serialize(status=200)
@@ -236,10 +231,8 @@ def auth_email(request):
 
 
 @csrf_exempt
+@auth_required
 def user_deals(request):
-    if not request.user.is_authenticated():
-        return GameError('no_auth')
-
     deals_out = [x.serialize(user_owner=request.user) for x in Deal.objects.filter(user_from=request.user)]
     deals_in = [x.serialize(user_owner=request.user) for x in Deal.objects.filter(user_to=request.user)]
 
@@ -252,10 +245,8 @@ def user_deals(request):
 
 
 @csrf_exempt
+@auth_required
 def deal_info(request):
-    if not request.user.is_authenticated():
-        return GameError('no_auth')
-
     try:
         deal_id, = get_params(request, 'deal_id')
     except SystemGameError as e:
@@ -273,10 +264,8 @@ def deal_info(request):
 
 
 @csrf_exempt
+@auth_required
 def deal_new(request):
-    if not request.user.is_authenticated():
-        return GameError('no_auth')
-
     try:
         venue_id, amount = get_params(request, 'venue_id', 'amount')
     except SystemGameError as e:
@@ -315,10 +304,8 @@ def deal_new(request):
 
 
 @csrf_exempt
+@auth_required
 def deal_cancel(request):
-    if not request.user.is_authenticated():
-        return GameError('no_auth')
-
     try:
         deal_id, = get_params(request, 'deal_id')
     except SystemGameError as e:
@@ -343,10 +330,8 @@ def deal_cancel(request):
 
 
 @csrf_exempt
+@auth_required
 def deal_accept(request):
-    if not request.user.is_authenticated():
-        return GameError('no_auth')
-
     try:
         deal_id, = get_params(request,  'deal_id')
     except SystemGameError as e:
