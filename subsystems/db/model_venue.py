@@ -1,11 +1,10 @@
 # -*- coding: utf-8 -*-
 from datetime import timedelta, datetime
-import django.dispatch
 
+import django.dispatch
 from django.db import models
 
 from .model_user import User
-import hashlib
 
 BASE_COST = 300
 BASE_INCOME = 100
@@ -27,8 +26,9 @@ class Venue(models.Model):
     # system fields
     list_id = models.CharField(max_length=255)
     last_update = models.IntegerField(default=0)
-    #to return
+    # to return
     name = models.CharField(max_length=255)
+    # TODO: перефигачить везде на просто id
     venue_id = models.CharField(max_length=255, unique=True)
     checkin_count = models.IntegerField(default=0)
     user_count = models.IntegerField(default=0)
@@ -46,6 +46,16 @@ class Venue(models.Model):
     updatable = VenueManager()
     objects = VenueManager()
 
+    # For pushes
+    @property
+    def push_id(self):
+        return self.venue_id
+
+    @property
+    def check_sum(self):
+        return ''.join([str(self.owner.id if self.owner else ''), str(self.lvl)])
+
+    # General
     def serialize(self, is_public=True, **kwargs):
         user = kwargs.pop('user_owner', None)
         response = {
@@ -129,6 +139,4 @@ class Venue(models.Model):
 
     def save(self, *args, **kwargs):
         self.last_update = datetime.now().timestamp()
-        m = hashlib.md5()
-        m.update("000005fab4534d05api_key9a0554259914a86fb9e7eb014e4e5d52permswrite".encode('utf-8'))
         super(Venue, self).save(*args, **kwargs)

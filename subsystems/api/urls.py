@@ -25,6 +25,8 @@ urlpatterns = patterns('subsystems.api.views',
     url(r'^user/venues$', 'user_venues'),
     url(r'^user/deals$', 'user_deals'),
     url(r'^user/rating$', 'user_rating'),
+    url(r'^user/bookmarks$', 'user_bookmarks'),
+
 
     url(r'^auth/signup$', 'auth_signup'),
     url(r'^auth/vk$', 'auth_vk'),
@@ -35,6 +37,9 @@ urlpatterns = patterns('subsystems.api.views',
     url(r'^deals/cancel$', 'deal_cancel'),
     url(r'^deals/accept$', 'deal_accept'),
     url(r'^deals/info$', 'deal_info'),
+
+    url(r'^bookmark/new$', 'bookmark_new'),
+    url(r'^bookmark/delete$', 'bookmark_dekete'),
 
     url(r'^push/reg$', 'push_reg'),
     url(r'^push/unreg$', 'push_unreg'),
