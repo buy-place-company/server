@@ -54,11 +54,16 @@ def post_params(request, *args):
 
 
 class JSONResponse:
+    RETURN_TYPE_HTTP_RESPONSE = 'h'
+    RETURN_TYPE_JSON_STR = 's'
+    RETURN_TYPE_DICT = 'd'
+
     @staticmethod
     def serialize(o=None, **kwargs):
         is_public = kwargs.pop('public', True)
         aas = kwargs.pop('aas', None)
         user = kwargs.pop('user_owner', None)
+        return_type = kwargs.pop('return_type', JSONResponse.RETURN_TYPE_HTTP_RESPONSE)
         if o is None:
             d = {}
         elif isinstance(o, dict):
@@ -74,7 +79,26 @@ class JSONResponse:
             d = o.serialize(is_public=is_public, user_owner=user)
             d = {aas: d}
         d.update(kwargs)
-        return HttpResponse(json.dumps(d, ensure_ascii=False))
+
+        if return_type == JSONResponse.RETURN_TYPE_DICT:
+            return d
+
+        dump = json.dumps(d, ensure_ascii=False)
+        if return_type == JSONResponse.RETURN_TYPE_JSON_STR:
+            return dump
+
+        if return_type == JSONResponse.RETURN_TYPE_HTTP_RESPONSE:
+            return HttpResponse(dump)
+
+        return None
+
+    @staticmethod
+    def serialize_with_push(push_type, o=None, **kwargs):
+        kwargs['return_type'] = JSONResponse.RETURN_TYPE_DICT
+        resp_dict = JSONResponse.serialize(o, **kwargs)
+        resp_http = HttpResponse(json.dumps(resp_dict, ensure_ascii=False))
+        resp_dict.update({'push_type': push_type})
+        return resp_http, resp_dict
 
 
 class ZoneView:

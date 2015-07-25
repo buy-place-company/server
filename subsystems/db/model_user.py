@@ -1,6 +1,7 @@
 from django.contrib.auth.hashers import make_password, check_password
 from django.db import models
 import bisect
+from conf.settings_game import START_CASH_AMOUNT
 from .manager_user import UserManager
 
 EXP_MAP = [68, 295, 805, 1716, 3154, 5249, 8136, 11955, 16851, 22973, 30475,
@@ -57,7 +58,7 @@ class User(models.Model):
     avatar = models.URLField()
     score = models.IntegerField(default=0)
     # private
-    cash = models.IntegerField(default=0)
+    cash = models.IntegerField(default=START_CASH_AMOUNT)
 
     def serialize(self, is_public=True, **kwargs):
         user = kwargs.pop('user_owner', None)

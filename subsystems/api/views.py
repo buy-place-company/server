@@ -4,6 +4,8 @@ import urllib.request
 
 from django.views.decorators.csrf import csrf_exempt
 from django.utils.timezone import now
+from subsystems.api.decor import auth_required
+from subsystems.gcm.models import Device
 
 from subsystems._auth import logout
 from subsystems.api.errors import GameError, NoMoneyError, HasOwnerAlready, UHaveIt, UDontHaveIt, SystemGameError, \
@@ -296,7 +298,20 @@ def deal_new(request):
 
     deal = Deal.objects.create(venue=venue, user_from=request.user, user_to=venue.owner if not is_pub else None,
                                amount=amount, state=STATES[0][0], dtype=dtype, is_public=is_pub)
-    return JSONResponse.serialize(deal, aas='deal', status=200, user_owner=request.user)
+
+    resp, push = JSONResponse.serialize_with_push(
+        'deal_new',
+        deal,
+        aas='deal',
+        status=200,
+        user_owner=request.user,
+        return_type=JSONResponse.RETURN_TYPE_DICT
+    )
+
+    devices = Device.objects.filter(user=request.user)
+    devices.send_message(push)
+
+    return resp
 
 
 @csrf_exempt
@@ -394,5 +409,14 @@ def deal_accept(request):
 
     return JSONResponse.serialize(deal, aas='deal', status=200, user_owner=request.user)
 
-def test(request):
+
+@csrf_exempt
+@auth_required
+def push_reg(request):
+    try:
+        reg_id, = post_params(request, 'reg_id')
+    except SystemGameError as e:
+        return GameError('no_args', e.message)
+
+    Device.objects.create(reg_id=reg_id, user=request.user)
     return JSONResponse.serialize(status=200)

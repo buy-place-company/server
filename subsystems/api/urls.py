@@ -12,6 +12,7 @@ urlpatterns = patterns('subsystems.api.views',
     url(r'^profile$', 'user_profile'),
     url(r'^test$', 'test'),
 
+    # V2
     url(r'^zone/venues$', 'zone_venues'),
 
     url(r'^venues/by_user$', 'user_venues'),
@@ -32,5 +33,7 @@ urlpatterns = patterns('subsystems.api.views',
     url(r'^deals/new$', 'deal_new'),
     url(r'^deals/cancel$', 'deal_cancel'),
     url(r'^deals/accept$', 'deal_accept'),
-    url(r'^deals/info$', 'deal_info')
+    url(r'^deals/info$', 'deal_info'),
+
+    url(r'^push/reg$', 'push_reg'),
 )

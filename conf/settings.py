@@ -40,7 +40,8 @@ INSTALLED_APPS = (
     'django.contrib.staticfiles',
     'subsystems.db',
     'subsystems.foursquare',
-    'subsystems.statistic'
+    'subsystems.statistic',
+    'subsystems.gcm',
 )
 
 MIDDLEWARE_CLASSES = (
@@ -135,3 +136,5 @@ LOGGING = {
         },
     },
 }
+
+from .secret import GCM_APIKEY

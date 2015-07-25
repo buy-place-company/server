@@ -26,9 +26,7 @@ class UserManager(models.Manager):
         return self.get(**{self.model.USERNAME_FIELD: username})
 
     def create_and_auth_email(self, request, email, password, name):
-        email = self.normalize_email(email)
-
-        user = self.model(email=email, name=name)
+        user = self.model(email=self.normalize_email(email), name=name)
         user.set_password(password)
         user.save(using=self._db)
 
@@ -37,9 +35,9 @@ class UserManager(models.Manager):
         return user
 
     def create_and_auth_vk(self, request, id_vk, name):
-        user = self.create(id_vk=id_vk, name=name)
+        user = self.model(id_vk=id_vk, name=name)
         user.set_password(None)
-        user.save()
+        user.save(using=self._db)
 
         user.backend = self.DEFAULT_AUTH_BACKEND
         login(request, user)
