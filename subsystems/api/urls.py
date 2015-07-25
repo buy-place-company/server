@@ -37,4 +37,5 @@ urlpatterns = patterns('subsystems.api.views',
     url(r'^deals/info$', 'deal_info'),
 
     url(r'^push/reg$', 'push_reg'),
+    url(r'^push/unreg$', 'push_unreg'),
 )
