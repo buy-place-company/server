@@ -10,7 +10,7 @@ from subsystems.gcm.models import Device
 from subsystems._auth import logout
 from subsystems.api.errors import GameError, NoMoneyError, HasOwnerAlready, UHaveIt, UDontHaveIt, SystemGameError, \
     InDeal, LogWarning
-from subsystems.api.utils import JSONResponse, VenueView, get_params, post_params
+from subsystems.api.utils import JSONResponse, VenueView, get_params, post_params, GPSUtils
 from subsystems.db.model_deal import Deal, STATES, TYPES
 from subsystems.db.model_user import User
 from subsystems.db.model_venue import Venue
@@ -18,7 +18,7 @@ from subsystems.db.model_zone import Zone
 from subsystems.foursquare.api import FoursquareAPI
 from conf.settings_local import SettingsLocal
 from conf.secret import VK_APP_KEY, VK_APP_ID
-from conf.settings_game import ORDER_BY, ZONE_LNG_STEP, ZONE_LAT_STEP
+from conf.settings_game import ORDER_BY, ZONE_LNG_STEP, ZONE_LAT_STEP, ZONE_RETURN_WIDTH, ZONE_RETURN_HEIGHT
 
 logger = logging.getLogger(__name__)
 
@@ -38,16 +38,25 @@ def zone_venues(request):
         return GameError('wrong_args', 'check: lat and lng')
 
     try:
-        lat_size = min(request.GET.get("lat_size", ZONE_LAT_STEP), 10*ZONE_LAT_STEP)
-        lng_size = min(request.GET.get("lng_size", ZONE_LNG_STEP), 10*ZONE_LNG_STEP)
+        lat_size = min(int(request.GET.get("lat_size", ZONE_LAT_STEP)), 2*ZONE_LAT_STEP)
+        lng_size = min(int(request.GET.get("lng_size", ZONE_LNG_STEP)), 2*ZONE_LNG_STEP)
+        km_width = min(int(request.GET.get("km_width", ZONE_RETURN_WIDTH)), 2*ZONE_RETURN_WIDTH)
+        km_height = min(int(request.GET.get("km_width", ZONE_RETURN_HEIGHT)), 2*ZONE_RETURN_HEIGHT)
     except (ValueError, TypeError):
-        return GameError('wrong_args', 'check: lat_size and lng_size')
+        return GameError('wrong_args', 'check: lat_size, lng_size, km_width, km_height')
 
     venues = []
     for z in Zone.objects.get_zones(lat, lng, lat_size, lng_size):
         venues.extend(FoursquareAPI.get_venues_from_zone(z))
 
-    return JSONResponse.serialize(venues, user_owner=request.user, aas='venues', status=200)
+    gpsutils = GPSUtils(lat=lat, lng=lng, w=km_width, h=km_height)
+
+    venues_km = []
+    for v in venues:
+        if True or gpsutils.has_point(v.lat, v.lng):
+            venues_km.append(v)
+
+    return JSONResponse.serialize(venues_km, user_owner=request.user, aas='venues', status=200)
 
 
 @csrf_exempt

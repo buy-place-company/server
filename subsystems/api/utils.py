@@ -3,6 +3,7 @@ import datetime
 
 from django.db.models import QuerySet
 from django.http import HttpResponse
+import math
 
 from conf import secret
 from subsystems.api.errors import NoMoneyError, HasOwnerAlready, UHaveIt, UDontHaveIt, SystemGameError
@@ -98,6 +99,8 @@ class JSONResponse:
         resp_dict = JSONResponse.serialize(o, **kwargs)
         resp_http = HttpResponse(json.dumps(resp_dict, ensure_ascii=False))
         resp_dict.update({'push_type': push_type})
+        if resp_dict['status'] == 200:
+            resp_dict.pop('status')
         return resp_http, resp_dict
 
 
@@ -209,3 +212,30 @@ class VenueView:
         self.venue.loot = 0
         user.save()
         self.venue.save()
+
+
+class GPSUtils(object):
+    def __init__(self, **kwargs):
+        lat = kwargs['lat']
+        lng = kwargs['lng']
+
+        w = kwargs['w']
+        h = kwargs['h']
+
+        y = lat * 110.574
+        x = lng * 111.320 * math.cos(lat)
+
+        self.x1 = x - w/2
+        self.y1 = y - h/2
+        self.x2 = x + w/2
+        self.y2 = y + h/2
+
+    def has_point(self, lat, lng):
+        y = lat * 110.574
+        x = lng * 111.320 * math.cos(lat)
+
+        if x < self.x1 or x > self.x2:
+            return False
+        if y < self.y1 or y > self.y2:
+            return False
+        return True
