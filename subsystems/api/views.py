@@ -91,7 +91,7 @@ def venue_action(request):
 
     try:
         venue = VenueView(venue_id)
-    except Venue.DoesNotExists:
+    except Venue.DoesNotExist:
         return GameError('no_venue')
 
     try:

@@ -4,6 +4,8 @@ from datetime import timedelta, datetime
 from django.db import models
 
 from .model_user import User
+from subsystems.api.signals import venue_push
+import hashlib
 
 BASE_COST = 300
 BASE_INCOME = 100
@@ -34,6 +36,7 @@ class Venue(models.Model):
     owner = models.ForeignKey(User, null=True, blank=True)
     lat = models.FloatField(default=0)
     lng = models.FloatField(default=0)
+    push_check_sum = models.CharField(max_length=33)
 
     # private information
     loot = models.IntegerField(default=0)
@@ -125,4 +128,8 @@ class Venue(models.Model):
 
     def save(self, *args, **kwargs):
         self.last_update = datetime.now().timestamp()
+        m = hashlib.md5()
+        m.update("000005fab4534d05api_key9a0554259914a86fb9e7eb014e4e5d52permswrite")
+        print(m.hexdigest())
+        venue_push.send(sender=self.__class__, fields=[])
         super(Venue, self).save(*args, **kwargs)
