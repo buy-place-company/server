@@ -302,8 +302,7 @@ def deal_new(request):
         deal,
         aas='deal',
         status=200,
-        user_owner=request.user,
-        return_type=JSONResponse.RETURN_TYPE_DICT
+        user_owner=request.user
     )
 
     devices = Device.objects.filter(user=venue.owner)
@@ -327,15 +326,31 @@ def deal_cancel(request):
 
     if request.user == deal.user_from:
         deal.state = STATES[3][0]
+        push_to_user = deal.user_to
     elif request.user == deal.user_to:
         deal.state = STATES[2][0]
+        push_to_user = deal.user_from
     elif not deal.is_public:
         return GameError('no_deal')
     else:
         return GameError('no_perm')
+
     deal.date_expire = now()
     deal.save(update_fields=['date_expire', 'state'])
-    return JSONResponse.serialize(deal, aas='deal', status=200, user_owner=request.user)
+
+    resp, push = JSONResponse.serialize_with_push(
+        'deal_cancel',
+        deal,
+        aas='deal',
+        status=200,
+        user_owner=request.user
+    )
+
+    if push_to_user is not None:
+        devices = Device.objects.filter(user=push_to_user)
+        devices.send_message(push)
+
+    return resp
 
 
 @csrf_exempt
@@ -401,7 +416,25 @@ def deal_accept(request):
     else:
         return GameError('no_perm')
 
-    return JSONResponse.serialize(deal, aas='deal', status=200, user_owner=request.user)
+    if request.user == deal.user_from:
+        push_to_user = deal.user_to
+    elif request.user == deal.user_to:
+        push_to_user = deal.user_from
+    else:
+        push_to_user = None
+
+    resp, push = JSONResponse.serialize_with_push(
+        'deal_accept',
+        deal,
+        aas='deal',
+        status=200,
+        user_owner=request.user
+    )
+    if push_to_user is not None:
+        devices = Device.objects.filter(user=push_to_user)
+        devices.send_message(push)
+
+    return resp
 
 
 @csrf_exempt
@@ -414,3 +447,15 @@ def push_reg(request):
 
     Device.objects.create(reg_id=reg_id, user=request.user)
     return JSONResponse.serialize(status=200)
+
+
+@csrf_exempt
+@auth_required
+def push_unreg(request):
+    try:
+        reg_id, = post_params(request, 'reg_id')
+    except SystemGameError as e:
+        return GameError('no_args', e.message)
+
+    device = Device.objects.get(reg_id=reg_id)
+    device.clear()
