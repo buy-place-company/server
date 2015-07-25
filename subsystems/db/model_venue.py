@@ -29,7 +29,7 @@ class Venue(models.Model):
     last_update = models.IntegerField(default=0)
     #to return
     name = models.CharField(max_length=255)
-    venue_id = models.CharField(max_length=255, primary_key=True)
+    venue_id = models.CharField(max_length=255, unique=True)
     checkin_count = models.IntegerField(default=0)
     user_count = models.IntegerField(default=0)
     tip_count = models.IntegerField(default=0)

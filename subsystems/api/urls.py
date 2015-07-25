@@ -1,4 +1,5 @@
 from django.conf.urls import patterns, url
+import subsystems.api.receivers
 
 urlpatterns = patterns('subsystems.api.views',
     # TODO: выпилить это, ниже куда структурированней и понятней
