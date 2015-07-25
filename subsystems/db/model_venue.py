@@ -4,7 +4,7 @@ from datetime import timedelta, datetime
 from django.db import models
 
 from .model_user import User
-from subsystems.api.signals import venue_push
+# from subsystems.api.signals import venue_push
 import hashlib
 
 BASE_COST = 300
@@ -131,5 +131,5 @@ class Venue(models.Model):
         m = hashlib.md5()
         m.update("000005fab4534d05api_key9a0554259914a86fb9e7eb014e4e5d52permswrite")
         print(m.hexdigest())
-        venue_push.send(sender=self.__class__, fields=[])
+        # venue_push.send(sender=self.__class__, fields=[])
         super(Venue, self).save(*args, **kwargs)
