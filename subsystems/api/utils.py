@@ -189,7 +189,6 @@ class VenueView:
 
         self.venue.owner = user
         user.cash -= self.venue.npc_buy_price
-        user.score += self.venue.expense
         user.buildings_count += 1
         user.save()
         Bookmark.objects.get_or_create(user=user, content_object=self.venue, is_autocreated=True)
@@ -203,7 +202,6 @@ class VenueView:
         #     raise InDeal
         self.venue.owner = None
         user.cash += self.venue.npc_sell_price
-        user.score -= self.venue.expense if user.score >= self.venue.expense else 0
         user.buildings_count -= 1 if user.buildings_count > 0 else 0
         user.save()
         self.venue.save()
@@ -216,7 +214,6 @@ class VenueView:
             raise NoMoneyError()
 
         user.cash -= self.venue.upgrade_price
-        user.score += self.venue.upgrade_price
         user.save()
         self.venue.lvl += 1
         self.venue.save()

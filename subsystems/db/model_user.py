@@ -5,6 +5,7 @@ from conf.settings_game import START_CASH_AMOUNT
 from conf.settings import STATIC_URL
 from conf.settings_local import SettingsLocal
 from .manager_user import UserManager
+from subsystems.db.model_venue import Venue
 
 EXP_MAP = [68, 295, 805, 1716, 3154, 5249, 8136, 11955, 16851, 22973, 30475,
            39516, 50261, 62876, 77537, 94421, 113712, 135596, 160266, 84495,
@@ -19,6 +20,7 @@ EXP_MAP = [68, 295, 805, 1716, 3154, 5249, 8136, 11955, 16851, 22973, 30475,
            867504463, 5906525385, 8207524971, 14341344002, 9969088216, 18392059298, 
            22570174524, 27893873314, 34494700219, 42704220933, 52959289091, 100973118145, 
            195410550016, 384956596063, 777809067883]
+
 
 class User(models.Model):
     # ========== user auth information ==========
@@ -59,7 +61,7 @@ class User(models.Model):
     buildings_count = models.SmallIntegerField(default=0)
     # TODO: drop field
     avatar = models.URLField()
-    score = models.IntegerField(default=0)
+    # score = models.IntegerField(default=0)
     # private
     cash = models.IntegerField(default=START_CASH_AMOUNT)
 
@@ -89,3 +91,11 @@ class User(models.Model):
     @property
     def max_objects(self):
         return 2 + int(self.lvl * 5 + round(1.3 ** self.lvl))
+
+    @property
+    def score(self):
+        score = 0
+        for obj in Venue.objects.filter(owner=self):
+            score += obj.expense
+
+        return score

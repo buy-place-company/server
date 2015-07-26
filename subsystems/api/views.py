@@ -388,10 +388,8 @@ def deal_accept(request):
                 return GameError('no_money')
             deal.user_to = request.user
             deal.user_to.cash += deal.amount
-            deal.user_to.score -= deal.venue.expense if deal.user_to.score >= deal.venue.expense else 0
             deal.user_to.buildings_count -= 1
             deal.user_from.cash -= deal.venue.expense
-            deal.user_from.score += deal.venue.expense if deal.user_from.score >= deal.venue.expense else 0
             deal.user_from.buildings_count += 1 if deal.user_from.buildings_count > 0 else 0
             deal.venue.owner = deal.user_from
             deal.venue.save()
@@ -402,10 +400,8 @@ def deal_accept(request):
                 return GameError('no_money')
             deal.user_to = request.user
             deal.user_from.cash += deal.amount
-            deal.user_from.score -= deal.venue.expense if deal.user_from.score >= deal.venue.expense else 0
             deal.user_from.buildings_count -= 1
             deal.user_to.cash -= deal.venue.expense
-            deal.user_to.score += deal.venue.expense
             deal.user_to.buildings_count += 1
             deal.venue.owner = deal.user_to
             deal.venue.save()
