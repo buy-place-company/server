@@ -5,6 +5,7 @@ import django.dispatch
 from django.db import models
 
 from .model_user import User
+from subsystems.db.model_bookmark import Bookmark
 
 BASE_COST = 300
 BASE_INCOME = 100
@@ -58,6 +59,7 @@ class Venue(models.Model):
     # General
     def serialize(self, is_public=True, **kwargs):
         user = kwargs.pop('user_owner', None)
+        is_favorite = Bookmark.objects.filter(user=user, object_id=self.id)
         response = {
             "id": self.venue_id,
             "stats": {
@@ -71,6 +73,7 @@ class Venue(models.Model):
             "owner": self.owner.serialize(user_owner=user) if self.owner else None,
             "latitude": round(self.lat, 3),
             "longitude": round(self.lng, 3),
+            "is_favorite": True if is_favorite else False
         }
         if self.owner is not None and (not is_public or self.owner == user):
             response.update({
