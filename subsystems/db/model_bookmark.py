@@ -1,15 +1,15 @@
 import hashlib
-from django.db import models
+from django.db import models as mo
 from django.db.models import ForeignKey
-from subsystems.db.models import Venue, User
+from subsystems.db import models
 
 
-class Bookmark(models.Model):
+class Bookmark(mo.Model):
     # system fields
-    user = ForeignKey(User)
-    venue = ForeignKey(Venue)
-    push_check_sum = models.CharField(max_length=33)
-    is_autocreated = models.BooleanField(default=True)
+    user = ForeignKey(models.User)
+    venue = ForeignKey(models.Venue)
+    push_check_sum = mo.CharField(max_length=33)
+    is_autocreated = mo.BooleanField(default=True)
 
     def save(self, *args, **kwargs):
         m = hashlib.md5()

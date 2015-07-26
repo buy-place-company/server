@@ -2,8 +2,7 @@
 import datetime
 from django.utils.timezone import now
 from django.db import models
-from subsystems.db.model_user import User
-from subsystems.db.model_venue import Venue
+from subsystems.db import models as mo
 
 
 STATES = (
@@ -21,9 +20,9 @@ TYPES = (
 
 
 class Deal(models.Model):
-    venue = models.ForeignKey(Venue, to_field='venue_id', help_text='Сделка на здание')
-    user_from = models.ForeignKey(User, help_text="Сделку предложил", related_name='user_from')
-    user_to = models.ForeignKey(User, help_text="Сделку предложили", related_name='user_ro', null=True)
+    venue = models.ForeignKey(mo.Venue, to_field='venue_id', help_text='Сделка на здание')
+    user_from = models.ForeignKey(mo.User, help_text="Сделку предложил", related_name='user_from')
+    user_to = models.ForeignKey(mo.User, help_text="Сделку предложили", related_name='user_ro', null=True)
     amount = models.IntegerField(help_text='Сумма сделки')
     date_added = models.DateTimeField(help_text='Дата предложения')
     date_expire = models.DateTimeField(help_text='Дата истечения срока предложения')

@@ -12,6 +12,7 @@ TIME_DELTA = 30
 
 venue_push = django.dispatch.Signal(providing_args=["fields"])
 
+
 class VenueManager(models.Manager):
     def get_queryset(self):
         ret = super(VenueManager, self).get_queryset()
