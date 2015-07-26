@@ -3,7 +3,6 @@ from datetime import timedelta, datetime
 import hashlib
 from django.db.models import ForeignKey
 
-import django.dispatch
 from django.db import models
 from subsystems.db.model_user import User
 
