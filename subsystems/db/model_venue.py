@@ -113,7 +113,7 @@ class Venue(models.Model):
     @property
     def expense(self):
         upgrades_price = BASE_COST * 2 * round(1.5 ** self.lvl)
-        return round(self.checkin_count * 1000 + self.user_count * 100 + upgrades_price + self.income * 24)
+        return round(((self.checkin_count * 5) ** 0.8) * 1000 + self.user_count * 100 + upgrades_price + self.income * 24)
 
     @property
     def upgrade_price(self):
