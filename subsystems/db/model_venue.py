@@ -161,7 +161,4 @@ class Bookmark(models.Model):
         super(Bookmark, self).save(*args, **kwargs)
 
     def serialize(self, user_owner=None, **kwargs):
-        return {
-            'user': self.user.serialize(user_owner=user_owner),
-            'venue': self.venue.serialize(user_owner=user_owner, **kwargs),
-        }
+        return self.venue.serialize(user_owner=user_owner, **kwargs)
