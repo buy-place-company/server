@@ -30,6 +30,8 @@ class User(models.Model):
     email = models.EmailField(max_length=60, unique=True, null=True)
     name = models.CharField(max_length=60)
     signup_date = models.DateField(auto_now_add=True)
+    buildings_count = models.SmallIntegerField(default=0)
+    cash = models.IntegerField(default=START_CASH_AMOUNT)
     USERNAME_FIELD = 'id'
 
     objects = UserManager()
@@ -54,15 +56,6 @@ class User(models.Model):
             self.save(update_fields=["password"])
         return check_password(raw_password, self.password, setter)
 
-    # ========== user game information ==========
-    # public
-    experience_count = models.BigIntegerField(default=0)
-    buildings_count = models.SmallIntegerField(default=0)
-    # TODO: drop field
-    avatar = models.URLField()
-    # score = models.IntegerField(default=0)
-    # private
-    cash = models.IntegerField(default=START_CASH_AMOUNT)
 
     def serialize(self, is_public=True, **kwargs):
         user = kwargs.pop('user_owner', None)
