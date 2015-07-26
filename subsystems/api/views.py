@@ -333,19 +333,14 @@ def deal_cancel(request):
 
     if request.user == deal.user_from:
         deal.state = STATES[3][0]
+        push_to_user = deal.user_to
     elif request.user == deal.user_to:
         deal.state = STATES[2][0]
+        push_to_user = deal.user_from
     elif not deal.is_public:
         return GameError('no_deal')
     else:
         return GameError('no_perm')
-
-    if request.user == deal.user_from:
-        push_to_user = deal.user_to
-    elif request.user == deal.user_to:
-        push_to_user = deal.user_from
-    else:
-        push_to_user = None
 
     resp, push = JSONResponse.serialize_with_push('deal_cancel', deal, aas='deal', status=200, user_owner=request.user)
 
