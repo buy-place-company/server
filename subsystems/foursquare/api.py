@@ -26,8 +26,13 @@ def add_to_list(queue):
         task = queue.get()
         while task.venue_ids:
             venue = task.venue_ids.pop()
-            dbvenue = Venue.objects.get(venue_id=venue)
-            dbvenue.save()
+            try:
+                dbvenue = Venue.objects.get(venue_id=venue)
+                dbvenue.save()
+            except Venue.DoesNotExist:
+                # TODO: потери зданий?
+                print("Exeption " + venue)
+                continue
             try:
                 FoursquareAPI.self.client.lists.additem(list_id=task.list_id, params={'venueId': venue})
                 time.sleep(0.5)
