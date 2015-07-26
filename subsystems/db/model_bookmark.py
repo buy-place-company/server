@@ -1,16 +1,14 @@
 import hashlib
-from django.contrib.contenttypes.fields import GenericForeignKey
-from django.contrib.contenttypes.models import ContentType
 from django.db import models
 from django.db.models import ForeignKey
 from subsystems.db.model_user import User
-from subsystems.db.model_venue import Venue
+from subsystems.db.model_venue import Venue as Ve
 
 
 class Bookmark(models.Model):
     # system fields
     user = ForeignKey(User)
-    venue = ForeignKey(Venue)
+    venue = ForeignKey(Ve)
     push_check_sum = models.CharField(max_length=33)
     is_autocreated = models.BooleanField(default=True)
 
