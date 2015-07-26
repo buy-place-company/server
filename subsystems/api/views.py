@@ -302,13 +302,19 @@ def deal_new(request):
 
     deal = Deal.objects.filter(venue=venue_id, user_from=request.user, state=STATES[0][0]).exclude(dtype=[TYPES[1][0], TYPES[0][0]])
     if deal:
-        return JSONResponse.serialize(deal.first(), aas='deal', status=204, user_owner=request.user)
+        deal = deal.first()
+        status = 204
+    else:
+        deal = Deal.objects.create(venue=venue, user_from=request.user, user_to=venue.owner if not is_pub else None,
+                                   amount=amount, state=STATES[0][0], dtype=dtype, is_public=is_pub)
+        status = 200
 
-    deal = Deal.objects.create(venue=venue, user_from=request.user, user_to=venue.owner if not is_pub else None,
-                               amount=amount, state=STATES[0][0], dtype=dtype, is_public=is_pub)
+    resp, push = JSONResponse.serialize_with_push('deal_new', deal, aas='deal', status=status, user_owner=request.user)
 
-    Bookmark.objects.create(user=request.user, content_object=deal, is_autocreated=True)
-    return JSONResponse.serialize(deal, aas='deal', status=200, user_owner=request.user)
+    if deal.user_to is not None:
+        Device.objects.filter(user=deal.user_to).send_message(push)
+
+    return resp
 
 
 @csrf_exempt
@@ -333,7 +339,19 @@ def deal_cancel(request):
     else:
         return GameError('no_perm')
 
-    return JSONResponse.serialize(deal, aas='deal', status=200, user_owner=request.user)
+    if request.user == deal.user_from:
+        push_to_user = deal.user_to
+    elif request.user == deal.user_to:
+        push_to_user = deal.user_from
+    else:
+        push_to_user = None
+
+    resp, push = JSONResponse.serialize_with_push('deal_cancel', deal, aas='deal', status=200, user_owner=request.user)
+
+    if deal.user_to is not None:
+        Device.objects.filter(user=push_to_user).send_message(push)
+
+    return resp
 
 
 @csrf_exempt
@@ -399,7 +417,19 @@ def deal_accept(request):
     else:
         return GameError('no_perm')
 
-    return JSONResponse.serialize(deal, aas='deal', status=200, user_owner=request.user)
+    if request.user == deal.user_from:
+        push_to_user = deal.user_to
+    elif request.user == deal.user_to:
+        push_to_user = deal.user_from
+    else:
+        push_to_user = None
+
+    resp, push = JSONResponse.serialize_with_push('deal_accept', deal, aas='deal', status=200, user_owner=request.user)
+
+    if deal.user_to is not None:
+        Device.objects.filter(user=push_to_user).send_message(push)
+
+    return resp
 
 
 @csrf_exempt
@@ -455,7 +485,11 @@ def push_reg(request):
     except SystemGameError as e:
         return GameError('no_args', message_params=e.message)
 
-    Device.objects.create(reg_id=reg_id, user=request.user)
+    try:
+        Device.objects.create(reg_id=reg_id, user=request.user)
+    except Exception as e:
+        logger.warning(e.message)
+        pass
     return JSONResponse.serialize(status=200)
 
 
@@ -467,5 +501,9 @@ def push_unreg(request):
     except SystemGameError as e:
         return GameError('no_args', message_params=e.message)
 
-    device = Device.objects.get(reg_id=reg_id)
-    device.clear()
+    try:
+        device = Device.objects.get(reg_id=reg_id)
+        device.clear()
+    except:
+        pass
+    return JSONResponse.serialize(status=200)

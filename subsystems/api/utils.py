@@ -6,7 +6,8 @@ from django.http import HttpResponse
 import math
 
 from conf import secret
-from subsystems.api.errors import NoMoneyError, HasOwnerAlready, UHaveIt, UDontHaveIt, SystemGameError
+from subsystems.api.errors import NoMoneyError, HasOwnerAlready, UHaveIt, UDontHaveIt, SystemGameError, \
+    MaxBuildingsCountReached
 from subsystems.db.model_bookmark import Bookmark
 from subsystems.db.model_venue import Venue
 from subsystems.db.model_zone import Zone
@@ -100,7 +101,7 @@ class JSONResponse:
         resp_dict = JSONResponse.serialize(o, **kwargs)
         resp_http = HttpResponse(json.dumps(resp_dict, ensure_ascii=False))
         resp_dict.update({'push_type': push_type})
-        if resp_dict['status'] == 200:
+        if 'status' in resp_dict:
             resp_dict.pop('status')
         return resp_http, resp_dict
 
@@ -109,7 +110,7 @@ class JSONResponse:
         kwargs['return_type'] = JSONResponse.RETURN_TYPE_DICT
         resp_dict = JSONResponse.serialize(o, **kwargs)
         resp_dict.update({'push_type': push_type})
-        if resp_dict['status'] == 200:
+        if 'status' in resp_dict:
             resp_dict.pop('status')
         return resp_dict
 
@@ -172,13 +173,16 @@ class VenueView:
 
     def buy(self, user):
         if user.cash < self.venue.expense:
-            raise NoMoneyError
+            raise NoMoneyError()
+
+        if user.buildings_count >= user.max_objects:
+            raise MaxBuildingsCountReached()
 
         if self.venue.owner == user:
-            raise UHaveIt
+            raise UHaveIt()
 
         if self.venue.owner:
-            raise HasOwnerAlready
+            raise HasOwnerAlready()
 
         self.venue.owner = user
         user.cash -= self.venue.npc_buy_price
@@ -190,7 +194,7 @@ class VenueView:
 
     def sell(self, user):
         if self.venue.owner != user:
-            raise UDontHaveIt
+            raise UDontHaveIt()
 
         # if Deal.objects.filter(venue=self.venue):
         #     raise InDeal
@@ -203,10 +207,10 @@ class VenueView:
 
     def upgrade(self, user):
         if self.venue.owner != user:
-            raise UDontHaveIt
+            raise UDontHaveIt()
 
         if user.cash < self.venue.upgrade_price:
-            raise NoMoneyError
+            raise NoMoneyError()
 
         user.cash -= self.venue.upgrade_price
         user.score += self.venue.upgrade_price
@@ -216,7 +220,7 @@ class VenueView:
 
     def collect_loot(self, user):
         if self.venue.owner != user:
-            raise UDontHaveIt
+            raise UDontHaveIt()
 
         self.venue.update()
         user.cash += self.venue.loot

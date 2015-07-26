@@ -37,6 +37,10 @@ class NoMoneyError(Exception):
     pass
 
 
+class MaxBuildingsCountReached(Exception):
+    pass
+
+
 class HasOwnerAlready(Exception):
     pass
 
