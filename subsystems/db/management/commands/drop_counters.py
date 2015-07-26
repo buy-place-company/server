@@ -9,3 +9,4 @@ class Command(BaseCommand):
     def handle(self, *args, **kwargs):
         for user in User.objects.all():
             user.building_counter = len(Venue.objects.filter(owner=user))
+            user.save()
