@@ -61,7 +61,7 @@ class Venue(models.Model):
     # General
     def serialize(self, is_public=True, **kwargs):
         user = kwargs.pop('user_owner', None)
-        is_favorite = Bookmark.objects.filter(user=user, venue=self)
+        is_favorite = Bookmark.objects.filter(user=user, venue_id=self.venue_id)
         response = {
             "id": self.venue_id,
             "stats": {
