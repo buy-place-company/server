@@ -9,7 +9,7 @@ from conf import secret
 from conf.settings import AVATAR_DIR
 from subsystems.api.errors import NoMoneyError, HasOwnerAlready, UHaveIt, UDontHaveIt, SystemGameError, \
     MaxBuildingsCountReached
-from subsystems.db.models import Bookmark, Venue, Zone
+from subsystems.db import models
 from subsystems.foursquare.api import Foursquare
 from conf.settings_game import DEFAULT_CATEGORIES
 from subsystems.foursquare.utils.foursquare_api import ServerError
@@ -141,7 +141,7 @@ class ZoneView:
             self.create()
 
         if not force_update:
-            venues = list(Venue.objects.filter(list_id=self.list_id).values()[:50])
+            venues = list(models.Venue.objects.filter(list_id=self.list_id).values()[:50])
 
         if force_update or not venues:
             try:
@@ -154,20 +154,20 @@ class ZoneView:
                 ven['list_id'] = self.list_id
         self.save_venues()
 
-        venues = list(Venue.objects.filter(list_id=self.list_id).values()[:50])
+        venues = list(models.Venue.objects.filter(list_id=self.list_id).values()[:50])
         self._venues = venues
         return venues
 
     def save_venues(self):
-        obj = Zone.objects.get('list_id', None)
+        obj = models.Zone.objects.get('list_id', None)
         obj.timestamp = datetime.datetime.now()
         obj.save()
-        Venue.objects.bulk_create(self.venues)
+        models.Venue.objects.bulk_create(self.venues)
 
 
 class VenueView:
     def __init__(self, venue_id):
-        self.venue = Venue.objects.get(venue_id=venue_id)
+        self.venue = models.Venue.objects.get(venue_id=venue_id)
 
     def __getitem__(self, item):
         return self.venue.get(item)
@@ -189,7 +189,7 @@ class VenueView:
         user.cash -= self.venue.npc_buy_price
         user.buildings_count += 1
         user.save()
-        Bookmark.objects.get_or_create(user=user, content_object=self.venue, is_autocreated=True)
+        models.Bookmark.objects.get_or_create(user=user, content_object=self.venue, is_autocreated=True)
         self.venue.save()
 
     def sell(self, user):
