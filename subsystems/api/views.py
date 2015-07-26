@@ -19,7 +19,8 @@ from subsystems.db.model_zone import Zone
 from subsystems.foursquare.api import FoursquareAPI
 from conf.settings_local import SettingsLocal
 from conf.secret import VK_APP_KEY, VK_APP_ID
-from conf.settings_game import ORDER_BY, ZONE_LNG_STEP, ZONE_LAT_STEP, ZONE_RETURN_WIDTH, ZONE_RETURN_HEIGHT
+from conf.settings_game import ORDER_BY, ZONE_LNG_STEP, ZONE_LAT_STEP, ZONE_RETURN_WIDTH, ZONE_RETURN_HEIGHT, \
+    ZONE_RETURN_LAT, ZONE_RETURN_LNG
 
 logger = logging.getLogger(__name__)
 
@@ -39,8 +40,8 @@ def zone_venues(request):
         return GameError('wrong_args', 'check: lat and lng')
 
     try:
-        lat_size = min(int(request.GET.get("lat_size", ZONE_LAT_STEP)), 2*ZONE_LAT_STEP)
-        lng_size = min(int(request.GET.get("lng_size", ZONE_LNG_STEP)), 2*ZONE_LNG_STEP)
+        lat_size = min(int(request.GET.get("lat_size", ZONE_RETURN_LAT)), 2*ZONE_RETURN_LAT)
+        lng_size = min(int(request.GET.get("lng_size", ZONE_RETURN_LNG)), 2*ZONE_RETURN_LNG)
         km_width = min(int(request.GET.get("km_width", ZONE_RETURN_WIDTH)), 2*ZONE_RETURN_WIDTH)
         km_height = min(int(request.GET.get("km_width", ZONE_RETURN_HEIGHT)), 2*ZONE_RETURN_HEIGHT)
     except (ValueError, TypeError):
