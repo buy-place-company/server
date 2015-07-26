@@ -272,7 +272,7 @@ class AvatarUtils(object):
 
     background = "rgb(224,224,224)"
 
-    generator = pydenticon.Generator(5, 5, digest=hashlib.sha1,
+    generator = pydenticon.Generator(3, 3, digest=hashlib.sha1,
                                      foreground=foreground, background=background)
 
     @classmethod

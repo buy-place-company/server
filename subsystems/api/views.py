@@ -500,4 +500,5 @@ def push_unreg(request):
 
 @csrf_exempt
 def test_image(request):
-    pass
+    for u in User.objects.all():
+        AvatarUtils.generate(u)
