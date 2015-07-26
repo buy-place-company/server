@@ -204,9 +204,9 @@ class VenueView:
         self.venue.owner = user
         user.cash -= self.venue.npc_buy_price
         user.buildings_count += 1
+        self.venue.save()
         user.save()
         Bookmark.objects.get_or_create(user=user, venue=self.venue, is_autocreated=True)
-        self.venue.save()
 
     def sell(self, user):
         if self.venue.owner != user:
