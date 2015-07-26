@@ -262,7 +262,7 @@ def user_deals(request):
 @auth_required
 def user_bookmarks(request):
     bookmarks = Bookmark.objects.filter(user=request.user)
-    return JSONResponse.serialize(o=bookmarks, aas='venues', status=200)
+    return JSONResponse.serialize(o=bookmarks, aas='venues', user_owner=request.user, status=200)
 
 
 @csrf_exempt
@@ -452,7 +452,7 @@ def bookmark_new(request):
     except Venue.DoesNotExist:
         return GameError('wrong_args', 'venue_id')
     obj = Bookmark.objects.get_or_create(user=request.user, venue=obj, is_autocreated=False)[0]
-    return JSONResponse.serialize(obj, aas='venue', status=200)
+    return JSONResponse.serialize(obj, aas='venue', user_owner=request.user, status=200)
 
 
 @csrf_exempt
@@ -473,7 +473,7 @@ def bookmark_delete(request):
         return GameError('no_bookmark')
     venue = obj.venue
     obj.delete()
-    return JSONResponse.serialize(venue, aas='venue', status=200)
+    return JSONResponse.serialize(venue, aas='venue', user_owner=request.user, status=200)
 
 
 @csrf_exempt
