@@ -206,7 +206,6 @@ class VenueView:
         user.buildings_count += 1
         self.venue.save()
         user.save()
-        Bookmark.objects.get_or_create(user=user, venue=self.venue, is_autocreated=True)
 
     def sell(self, user):
         if self.venue.owner != user:
