@@ -87,7 +87,7 @@ class User(models.Model):
     @property
     def score(self):
         from subsystems.db.model_venue import Venue
-        score = 0
+        score = self.cash
         for obj in Venue.objects.filter(owner=self):
             score += obj.expense
         self._score = score
