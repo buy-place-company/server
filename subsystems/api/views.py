@@ -11,7 +11,7 @@ from subsystems.gcm.models import Device
 from subsystems._auth import logout
 from subsystems.api.errors import GameError, NoMoneyError, HasOwnerAlready, UHaveIt, UDontHaveIt, SystemGameError, \
     InDeal, LogWarning
-from subsystems.api.utils import JSONResponse, VenueView, get_params, post_params, GPSUtils, AvatarUtils
+from subsystems.api.utils import JSONResponse, VenueView, get_params, post_params, GPSUtils, AvatarUtils, PushUtils
 from subsystems.db.model_deal import Deal, STATES, TYPES
 from subsystems.db.model_user import User
 from subsystems.db.model_venue import Venue
@@ -315,8 +315,6 @@ def deal_new(request):
         deal = Deal.objects.create(venue=venue, user_from=request.user, user_to=venue.owner if not is_pub else None,
                                    amount=amount, state=STATES[0][0], dtype=dtype, is_public=is_pub)
         status = 200
-        request.user.buildings_count += 1
-        request.user.save()
 
     resp, push = JSONResponse.serialize_with_push('deal_new', deal, aas='deal', status=status, user_owner=request.user)
 
@@ -375,8 +373,8 @@ def deal_accept(request):
     except Deal.DoesNotExist:
         return GameError('no_deal')
 
-    # if deal.state != STATES[0][0]:
-    #     return JSONResponse.serialize(deal, aas='deal', status=200, user_owner=request.user)
+    if deal.state != STATES[0][0]:
+        return JSONResponse.serialize(deal, aas='deal', status=200, user_owner=request.user)
 
     if deal.is_public or request.user == deal.user_to:
         if not deal.venue.owner:
@@ -391,7 +389,25 @@ def deal_accept(request):
 
         if deal.dtype == TYPES[0][0]:
             if deal.user_from.cash < deal.amount:
-                return GameError('no_money')
+                return PushUtils.push_with_error(
+                    'deal_no_money_other',
+                    deal.user_from,
+                    GameError('no_money_other'),
+                    deal,
+                    aas='deal',
+                    status=200,
+                    user_owner=request.user
+                )
+            if not deal.user_from.has_place():
+                return PushUtils.push_with_error(
+                    'deal_no_place_other',
+                    deal.user_from,
+                    GameError('no_place_other'),
+                    deal,
+                    aas='deal',
+                    status=200,
+                    user_owner=request.user
+                )
             deal.user_to = request.user
             deal.user_to.cash += deal.amount
             deal.user_to.buildings_count -= 1
@@ -403,9 +419,25 @@ def deal_accept(request):
             deal.user_from.save()
         elif deal.dtype == TYPES[1][0]:
             if request.user.cash < deal.amount:
-                return GameError('no_money')
+                return PushUtils.push_with_error(
+                    'deal_no_money',
+                    deal.user_from,
+                    GameError('no_money'),
+                    deal,
+                    aas='deal',
+                    status=200,
+                    user_owner=request.user
+                )
             if not request.user.has_place():
-                return GameError('no_place')
+                return PushUtils.push_with_error(
+                    'deal_no_place',
+                    deal.user_from,
+                    GameError('no_place'),
+                    deal,
+                    aas='deal',
+                    status=200,
+                    user_owner=request.user
+                )
             deal.user_to = request.user
             deal.user_from.cash += deal.amount
             deal.user_from.buildings_count -= 1

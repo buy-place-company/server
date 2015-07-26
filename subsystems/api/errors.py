@@ -29,6 +29,8 @@ ERRORS = {
     'in_deal': {'status': 215, 'message': '[GAME] Building is a part of deal already'},
     'sold': {'status': 216, 'message': '[GAME] Building has been sold already'},
     'no_place': {'status': 217, 'message': '[GAME] You have no places for building'},
+    'no_place_other': {'status': 218, 'message': '[SYS] No such bookmark'},
+    'no_money_other': {'status': 219, 'message': '[GAME] No money for this action'},
 
     'no_perm': {'status': 492, 'message': '[GAME] You cant do it'}
 }

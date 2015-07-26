@@ -1,5 +1,6 @@
 import json
 import datetime
+import logging
 
 from django.db.models import QuerySet
 from django.http import HttpResponse
@@ -8,13 +9,19 @@ import math
 from conf import secret
 from conf.settings import AVATAR_DIR
 from subsystems.api.errors import NoMoneyError, HasOwnerAlready, UHaveIt, UDontHaveIt, SystemGameError, \
-    MaxBuildingsCountReached
+    MaxBuildingsCountReached, GameError
 from subsystems.db import models
+from subsystems.db.model_venue import Bookmark
 from subsystems.foursquare.api import Foursquare
 from conf.settings_game import DEFAULT_CATEGORIES
 from subsystems.foursquare.utils.foursquare_api import ServerError
 import pydenticon
 import hashlib
+from subsystems.gcm.models import Device
+
+
+logger = logging.getLogger(__name__)
+
 
 
 def get_params_native(request, *args):
@@ -116,6 +123,15 @@ class JSONResponse:
         return resp_dict
 
 
+class PushUtils(object):
+    @staticmethod
+    def push_with_error(push_type, to_user, err, o=None, **kwargs):
+        push = JSONResponse.serialize_push(push_type, o, **kwargs)
+        msg = Device.objects.filter(user=to_user).send_message(push)
+        logger.warning(push_type + str(msg))
+        return err
+
+
 class ZoneView:
     def __init__(self, sw_lat, sw_lng, ne_lat, ne_lng, list_id=None):
         self.list_id = list_id
@@ -189,7 +205,7 @@ class VenueView:
         user.cash -= self.venue.npc_buy_price
         user.buildings_count += 1
         user.save()
-        models.Bookmark.objects.get_or_create(user=user, content_object=self.venue, is_autocreated=True)
+        Bookmark.objects.get_or_create(user=user, content_object=self.venue, is_autocreated=True)
         self.venue.save()
 
     def sell(self, user):
