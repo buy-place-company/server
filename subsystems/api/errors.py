@@ -28,6 +28,7 @@ ERRORS = {
     'no_owner': {'status': 214, 'message': '[GAME] No one doesnt have this building yet'},
     'in_deal': {'status': 215, 'message': '[GAME] Building is a part of deal already'},
     'sold': {'status': 216, 'message': '[GAME] Building has been sold already'},
+    'no_place': {'status': 217, 'message': '[GAME] You have no places for building'},
 
     'no_perm': {'status': 492, 'message': '[GAME] You cant do it'}
 }

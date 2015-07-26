@@ -92,3 +92,6 @@ class User(models.Model):
             score += obj.expense
         self._score = score
         return score
+
+    def has_place(self):
+        return self.max_objects == self.buildings_count

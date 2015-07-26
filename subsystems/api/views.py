@@ -285,6 +285,8 @@ def deal_info(request):
 @csrf_exempt
 @auth_required
 def deal_new(request):
+    if not request.user.has_place():
+        return GameError('no_place')
     try:
         venue_id, amount = get_params(request, 'venue_id', 'amount')
     except SystemGameError as e:
@@ -308,6 +310,8 @@ def deal_new(request):
         deal = Deal.objects.create(venue=venue, user_from=request.user, user_to=venue.owner if not is_pub else None,
                                    amount=amount, state=STATES[0][0], dtype=dtype, is_public=is_pub)
         status = 200
+        request.user.buildings_count += 1
+        request.user.save()
 
     resp, push = JSONResponse.serialize_with_push('deal_new', deal, aas='deal', status=status, user_owner=request.user)
 
@@ -387,7 +391,7 @@ def deal_accept(request):
             deal.user_to.cash += deal.amount
             deal.user_to.buildings_count -= 1
             deal.user_from.cash -= deal.venue.expense
-            deal.user_from.buildings_count += 1 if deal.user_from.buildings_count > 0 else 0
+            deal.user_from.buildings_count += 1
             deal.venue.owner = deal.user_from
             deal.venue.save()
             deal.user_to.save()
@@ -395,6 +399,8 @@ def deal_accept(request):
         elif deal.dtype == TYPES[1][0]:
             if request.user.cash < deal.amount:
                 return GameError('no_money')
+            if not request.user.has_place():
+                return GameError('no_place')
             deal.user_to = request.user
             deal.user_from.cash += deal.amount
             deal.user_from.buildings_count -= 1
@@ -452,7 +458,7 @@ def bookmark_delete(request):
     except SystemGameError as e:
         return GameError('no_args', message_params=e.message)
     try:
-        obj = Bookmark.objects.get(venue_id=venue_id)
+        obj = Bookmark.objects.get(object_id=venue_id)
     except Bookmark.DoesNotExist:
         return GameError('no_bookmark')
     obj.delete()
