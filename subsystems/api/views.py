@@ -201,9 +201,11 @@ def auth_vk(request):
 
 
 @csrf_exempt
-@auth_required
 def auth_logout(request):
-    logout(request)
+    try:
+        logout(request)
+    except:
+        pass
     return JSONResponse.serialize(status=200)
 
 
