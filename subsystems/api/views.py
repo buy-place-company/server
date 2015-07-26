@@ -451,8 +451,7 @@ def bookmark_new(request):
         obj = Venue.objects.get(venue_id=venue_id)
     except Venue.DoesNotExist:
         return GameError('wrong_args', 'venue_id')
-    obj = Bookmark.objects.get_or_create(user=request.user, venue=obj, is_autocreated=False).first()
-    print(obj)
+    obj = Bookmark.objects.get_or_create(user=request.user, venue=obj, is_autocreated=False)[0]
     return JSONResponse.serialize(obj, aas='venue', status=200)
 
 
