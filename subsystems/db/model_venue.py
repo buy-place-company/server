@@ -4,7 +4,7 @@ from datetime import timedelta, datetime
 import django.dispatch
 from django.db import models
 
-from .models import User, Bookmark
+from .models import User
 
 BASE_COST = 300
 BASE_INCOME = 100
@@ -59,6 +59,7 @@ class Venue(models.Model):
     # General
     def serialize(self, is_public=True, **kwargs):
         user = kwargs.pop('user_owner', None)
+        from subsystems.db.models import Bookmark
         is_favorite = Bookmark.objects.filter(user=user, venue=self)
         response = {
             "id": self.venue_id,
