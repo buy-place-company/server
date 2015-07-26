@@ -82,6 +82,7 @@ STATIC_ROOT = BASE_DIR
 STATICFILES_DIRS = (
     'static',
 )
+AVATAR_DIR = BASE_DIR + "/" + STATICFILES_DIRS[0]
 
 TEMPLATE_DIRS = [
     os.path.join(BASE_DIR, 'templates')

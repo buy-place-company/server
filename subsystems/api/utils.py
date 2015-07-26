@@ -6,6 +6,7 @@ from django.http import HttpResponse
 import math
 
 from conf import secret
+from conf.settings import AVATAR_DIR
 from subsystems.api.errors import NoMoneyError, HasOwnerAlready, UHaveIt, UDontHaveIt, SystemGameError, \
     MaxBuildingsCountReached
 from subsystems.db.model_bookmark import Bookmark
@@ -276,7 +277,8 @@ class AvatarUtils(object):
 
     @classmethod
     def generate(cls, user):
-        binary_image = cls.generator.generate("%d" % user.id, 128, 128)
-        f = open('%d.png' % user.id, 'bw')
+        file_name = '%s/%d.png' % (AVATAR_DIR, user.id)
+        binary_image = cls.generator.generate(file_name, 128, 128)
+        f = open(file_name, 'bw')
         f.write(binary_image)
         f.close()
