@@ -249,6 +249,7 @@ def auth_email(request):
 def user_deals(request):
     deals_out = [x.serialize(user_owner=request.user) for x in Deal.objects.filter(user_from=request.user)]
     deals_in = [x.serialize(user_owner=request.user) for x in Deal.objects.filter(user_to=request.user)]
+    deals_in.append([x.serialize(user_owner=request.user) for x in Deal.objects.filter(user_to=None)])
 
     d = {
         'outgoing': deals_out,
