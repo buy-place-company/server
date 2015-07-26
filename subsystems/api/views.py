@@ -292,7 +292,10 @@ def deal_new(request):
     except SystemGameError as e:
         return GameError('no_args', e.message)
 
-    venue = Venue.objects.get(venue_id=venue_id)
+    try:
+        venue = Venue.objects.get(venue_id=venue_id)
+    except Venue.DoesNotExist:
+        return GameError('no_venue')
     if venue.owner == request.user:
         dtype = TYPES[1][0]
         is_pub = True
@@ -446,7 +449,7 @@ def bookmark_new(request):
         obj = Venue.objects.get(venue_id=venue_id)
     except Venue.DoesNotExist:
         return GameError('wrong_args', 'venue_id')
-    obj = Bookmark.objects.get_or_create(user=request.user, content_object=obj, is_autocreated=False)
+    obj = Bookmark.objects.get_or_create(user=request.user, venue=obj, is_autocreated=False)
     return JSONResponse.serialize(obj, aas='venue', status=200)
 
 
@@ -457,8 +460,13 @@ def bookmark_delete(request):
         venue_id, = post_params(request, 'venue_id')
     except SystemGameError as e:
         return GameError('no_args', message_params=e.message)
+
     try:
-        obj = Bookmark.objects.get(object_id=venue_id)
+        venue = Venue.objects.get(venue_id=venue_id)
+    except Venue.DoesNotExist:
+        return GameError('no_venue')
+    try:
+        obj = Bookmark.objects.filter(user=request.user, venue=venue)
     except Bookmark.DoesNotExist:
         return GameError('no_bookmark')
     obj.delete()
