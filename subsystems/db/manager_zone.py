@@ -35,6 +35,7 @@ class ZoneManager(models.Manager):
 
     def get_parent(self, lat, lng):
         lat, lng = self.__normalize_axis(lat, lng)
+        print("KLOG: lat = %.2f, lng = %.2f" % (lat, lng))
 
         try:
             return self.get(
