@@ -1,7 +1,6 @@
 import json
 import logging
 import urllib.request
-from django.contrib.contenttypes.models import ContentType
 
 from django.views.decorators.csrf import csrf_exempt
 from django.utils.timezone import now
@@ -12,7 +11,7 @@ from subsystems.gcm.models import Device
 from subsystems._auth import logout
 from subsystems.api.errors import GameError, NoMoneyError, HasOwnerAlready, UHaveIt, UDontHaveIt, SystemGameError, \
     InDeal, LogWarning
-from subsystems.api.utils import JSONResponse, VenueView, get_params, post_params, GPSUtils
+from subsystems.api.utils import JSONResponse, VenueView, get_params, post_params, GPSUtils, AvatarUtils
 from subsystems.db.model_deal import Deal, STATES, TYPES
 from subsystems.db.model_user import User
 from subsystems.db.model_venue import Venue
@@ -196,6 +195,7 @@ def auth_vk(request):
             name = ''
 
         user = User.objects.create_and_auth_vk(request, vk_user_id, name)
+        AvatarUtils.generate(user)
 
     return JSONResponse.serialize({'id': user.id, 'name': user.name}, status=200)
 
@@ -216,6 +216,7 @@ def auth_signup(request):
 
     try:
         user = User.objects.create_and_auth_email(request, email, password, name)
+        AvatarUtils.generate(user)
     except:
         return GameError('user_already_exists')
 
@@ -495,3 +496,8 @@ def push_unreg(request):
     except Exception as e:
         logger.warning(e)
     return JSONResponse.serialize(status=200)
+
+
+@csrf_exempt
+def test_image(request):
+    pass

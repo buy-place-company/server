@@ -9,7 +9,7 @@ urlpatterns = patterns('subsystems.api.views',
     url(r'^object_action$', 'venue_action'),
     url(r'^user_objects$', 'user_venues'),
     url(r'^rating$', 'user_rating'),
-    url(r'^auth/vk$', 'auth_vk'),
+    #url(r'^auth/vk$', 'auth_vk'),
     url(r'^profile$', 'user_profile'),
     url(r'^test$', 'test'),
 
@@ -27,7 +27,6 @@ urlpatterns = patterns('subsystems.api.views',
     url(r'^user/rating$', 'user_rating'),
     url(r'^user/bookmarks$', 'user_bookmarks'),
 
-
     url(r'^auth/signup$', 'auth_signup'),
     url(r'^auth/vk$', 'auth_vk'),
     url(r'^auth/email$', 'auth_email'),
@@ -43,4 +42,6 @@ urlpatterns = patterns('subsystems.api.views',
 
     url(r'^push/reg$', 'push_reg'),
     url(r'^push/unreg$', 'push_unreg'),
+
+    url(r'^tim$', 'test_image'),
 )

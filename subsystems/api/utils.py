@@ -14,6 +14,8 @@ from subsystems.db.model_zone import Zone
 from subsystems.foursquare.api import Foursquare
 from conf.settings_game import DEFAULT_CATEGORIES
 from subsystems.foursquare.utils.foursquare_api import ServerError
+import pydenticon
+import hashlib
 
 
 def get_params_native(request, *args):
@@ -254,3 +256,27 @@ class GPSUtils(object):
         if y < self.y1 or y > self.y2:
             return False
         return True
+
+
+class AvatarUtils(object):
+    foreground = [
+        "rgb(45,79,255)",
+        "rgb(254,180,44)",
+        "rgb(226,121,234)",
+        "rgb(30,179,253)",
+        "rgb(232,77,65)",
+        "rgb(49,203,115)",
+        "rgb(141,69,170)"
+    ]
+
+    background = "rgb(224,224,224)"
+
+    generator = pydenticon.Generator(5, 5, digest=hashlib.sha1,
+                                     foreground=foreground, background=background)
+
+    @classmethod
+    def generate(cls, user):
+        binary_image = cls.generator.generate("%d" % user.id, 128, 128)
+        f = open('%d.png' % user.id, 'bw')
+        f.write(binary_image)
+        f.close()

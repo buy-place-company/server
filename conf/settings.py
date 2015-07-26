@@ -137,4 +137,6 @@ LOGGING = {
     },
 }
 
+
+# DON'T REMOVE IT
 from .secret import GCM_APIKEY
