@@ -474,8 +474,7 @@ def push_reg(request):
     try:
         Device.objects.create(reg_id=reg_id, user=request.user)
     except Exception as e:
-        logger.warning(e.message)
-        pass
+        logger.warning(e)
     return JSONResponse.serialize(status=200)
 
 
@@ -490,6 +489,6 @@ def push_unreg(request):
     try:
         device = Device.objects.get(reg_id=reg_id)
         device.clear()
-    except:
-        pass
+    except Exception as e:
+        logger.warning(e)
     return JSONResponse.serialize(status=200)
