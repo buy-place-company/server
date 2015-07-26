@@ -32,6 +32,7 @@ class User(models.Model):
     signup_date = models.DateField(auto_now_add=True)
     buildings_count = models.SmallIntegerField(default=0)
     cash = models.IntegerField(default=START_CASH_AMOUNT)
+    _score = models.IntegerField(default=0)
     USERNAME_FIELD = 'id'
 
     objects = UserManager()
@@ -90,5 +91,5 @@ class User(models.Model):
         score = 0
         for obj in Venue.objects.filter(owner=self):
             score += obj.expense
-
+        self._score = score
         return score
