@@ -312,7 +312,7 @@ def deal_new(request):
 
     if deal.user_to is not None:
         msg = Device.objects.filter(user=deal.user_to).send_message(push)
-        logger.info("Where: deal_new\n" + str(msg))
+        logger.warn("Where: deal_new\n" + str(msg))
 
     return resp
 
@@ -350,7 +350,7 @@ def deal_cancel(request):
 
     if deal.user_to is not None:
         msg = Device.objects.filter(user=push_to_user).send_message(push)
-        logger.info("Where: deal_cancel\n" + str(msg))
+        logger.warn("Where: deal_cancel\n" + str(msg))
 
     return resp
 
@@ -429,7 +429,7 @@ def deal_accept(request):
 
     if deal.user_to is not None:
         msg = Device.objects.filter(user=push_to_user).send_message(push)
-        logger.info("Where: deal_accept\n" + str(msg))
+        logger.warn("Where: deal_accept\n" + str(msg))
 
     return resp
 
