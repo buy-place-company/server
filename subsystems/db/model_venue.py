@@ -72,22 +72,19 @@ class Venue(models.Model):
             "owner": self.owner.serialize(user_owner=user) if self.owner else None,
             "latitude": round(self.lat, 3),
             "longitude": round(self.lng, 3),
-            "is_favorite": True if is_favorite else False
+            "is_favorite": True if is_favorite else False,
+            "buy_price": round(self.npc_buy_price, 1)
         }
         if self.owner is not None and (not is_public or self.owner == user):
             response.update({
                 "max_loot": round(self.max_loot, 1),
                 "sell_price": round(self.npc_sell_price, 1),
-                "buy_price": round(self.npc_buy_price, 1),
                 "upgrade_price": round(self.upgrade_price, 1),
                 # "expense": self.expense,
                 "loot": self.loot or 0,
                 "income": self.income,
                 "consumption": self.consumption
             })
-
-        if self.owner is None:
-            response.update({"buy_price": round(self.npc_buy_price, 1)})
 
         return response
 
@@ -96,25 +93,34 @@ class Venue(models.Model):
         return round(3 * self.income * (1.1 ** self.lvl))
 
     @property
+    def _base_cost(self):
+        return ((self.checkin_count * 5) ** 0.5) * 100 + self.user_count * 1000
+
+    @property
     def income(self):
-        return round(BASE_INCOME / 10 + BASE_INCOME * self.lvl * (1.1 ** (self.lvl - 1)) + 10 * self.checkin_count + self.user_count * 10)
+        return round(self._base_cost ** 0.6) * (1 + 1.4 ** self.lvl)
 
     @property
     def npc_buy_price(self):
-        return round(self.expense * 1)
+        return round(self.expense * 1.1)
 
     @property
     def npc_sell_price(self):
-        return round(self.expense * 0.5)
+        return round(self.expense * 0.9)
 
     @property
     def expense(self):
-        upgrades_price = BASE_COST * 2 * round(1.5 ** self.lvl)
-        return round(((self.checkin_count * 5) ** 0.8) * 1000 + self.user_count * 100 + upgrades_price + self.income * 24)
+        upgrades_price = 0
+        for lvl in range(0, self.lvl, 1):
+            upgrades_price += self.get_upgrade_price(lvl)
+        return round(self._base_cost + self.income * 24 + upgrades_price)
 
     @property
     def upgrade_price(self):
-        return round(BASE_COST*(1.5 ** (self.lvl - 1)))
+        return self.get_upgrade_price(self.lvl)
+
+    def get_upgrade_price(self, lvl):
+        return round((self._base_cost ** 0.8) * (1.4 ** (lvl - 1)))
 
     @property
     def consumption(self):
