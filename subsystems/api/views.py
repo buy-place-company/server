@@ -250,7 +250,9 @@ def user_deals(request):
     deals_out = [x.serialize(user_owner=request.user) for x in Deal.objects.filter(user_from=request.user)]
     deals_in = [x.serialize(user_owner=request.user) for x in Deal.objects.filter(user_to=request.user)]
     deals_in.append([x.serialize(user_owner=request.user) for x in Deal.objects.filter(user_to=None)])
-
+    
+    print(deals_out)
+    print(deals_in)
     d = {
         'outgoing': deals_out,
         'incoming': deals_in,
