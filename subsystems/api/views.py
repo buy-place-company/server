@@ -12,7 +12,7 @@ from subsystems.api.errors import GameError, NoMoneyError, HasOwnerAlready, UHav
     InDeal, LogWarning
 from subsystems.api.utils import JSONResponse, VenueView, get_params, post_params, GPSUtils, AvatarUtils
 from subsystems.db.model_deal import STATES, TYPES
-from subsystems.db.models import Deal, Venue, Zone, Bookmark
+from subsystems.db import models
 from subsystems.foursquare.api import FoursquareAPI
 from conf.settings_local import SettingsLocal
 from conf.secret import VK_APP_KEY, VK_APP_ID
@@ -44,7 +44,7 @@ def zone_venues(request):
         return GameError('wrong_args', 'check: lat_size, lng_size, km_width, km_height')
 
     venues = []
-    for z in Zone.objects.get_zones(lat, lng, lat_size, lng_size):
+    for z in models.Zone.objects.get_zones(lat, lng, lat_size, lng_size):
         venues.extend(FoursquareAPI.get_venues_from_zone(z))
 
     gpsutils = GPSUtils(lat=lat, lng=lng, w=km_width, h=km_height)
@@ -66,8 +66,8 @@ def venue_info(request):
         return GameError('no_args', e.message)
 
     try:
-        venue = Venue.objects.get(venue_id=venue_id)
-    except Venue.DoesNotExist:
+        venue = models.Venue.objects.get(venue_id=venue_id)
+    except models.Venue.DoesNotExist:
         return GameError('no_venue')
 
     if venue is None:
@@ -89,7 +89,7 @@ def venue_action(request):
 
     try:
         venue = VenueView(venue_id)
-    except Venue.DoesNotExist:
+    except models.Venue.DoesNotExist:
         return GameError('no_venue')
 
     try:
@@ -127,7 +127,7 @@ def user_venues(request):
     except SystemGameError as e:
         user_id = request.user
 
-    objs = Venue.objects.filter(owner=user_id)
+    objs = models.Venue.objects.filter(owner=user_id)
     return JSONResponse.serialize(list(objs), aas='venues', status=200, user_owner=request.user)
 
 
@@ -141,7 +141,7 @@ def user_rating(request):
     if order_by is None:
         order_by = '_score'
 
-    users = User.objects.all().order_by("-" + order_by)[offset:offset + limit]
+    users = models.User.objects.all().order_by("-" + order_by)[offset:offset + limit]
     return JSONResponse.serialize(users, aas='users', status=200, user={'user': request.user.serialize(is_public=False)},
                                   user_owner=request.user)
 
@@ -176,9 +176,9 @@ def auth_vk(request):
         return GameError('VK_no_auth')
 
     try:
-        user = User.objects.get(id_vk=vk_user_id)
-        user = User.objects.auth(request, user)
-    except User.DoesNotExist:
+        user = models.User.objects.get(id_vk=vk_user_id)
+        user = models.User.objects.auth(request, user)
+    except models.User.DoesNotExist:
         url = \
             "https://api.vk.com/method/users.get?" + \
             "user_ids=%d&" % vk_user_id + \
@@ -191,7 +191,7 @@ def auth_vk(request):
         except:
             name = ''
 
-        user = User.objects.create_and_auth_vk(request, vk_user_id, name)
+        user = models.User.objects.create_and_auth_vk(request, vk_user_id, name)
         AvatarUtils.generate(user)
 
     return JSONResponse.serialize({'id': user.id, 'name': user.name}, status=200)
@@ -212,7 +212,7 @@ def auth_signup(request):
         return GameError('no_args', e.message)
 
     try:
-        user = User.objects.create_and_auth_email(request, email, password, name)
+        user = models.User.objects.create_and_auth_email(request, email, password, name)
         AvatarUtils.generate(user)
     except:
         return GameError('user_already_exists')
@@ -228,12 +228,12 @@ def auth_email(request):
         return GameError('no_args', e.message)
 
     try:
-        email = User.objects.normalize_email(email)
-        user = User.objects.get(email=email)
-        user = User.objects.auth(request, user, password=password)
+        email = models.User.objects.normalize_email(email)
+        user = models.User.objects.get(email=email)
+        user = models.User.objects.auth(request, user, password=password)
         if user is None:
             return GameError('user_not_exists')
-    except User.DoesNotExist:
+    except models.User.DoesNotExist:
         return GameError('user_not_exists')
 
     return JSONResponse.serialize({'id': user.id, 'name': user.name}, status=200)
@@ -242,8 +242,8 @@ def auth_email(request):
 @csrf_exempt
 @auth_required
 def user_deals(request):
-    deals_out = [x.serialize(user_owner=request.user) for x in Deal.objects.filter(user_from=request.user)]
-    deals_in = [x.serialize(user_owner=request.user) for x in Deal.objects.filter(user_to=request.user)]
+    deals_out = [x.serialize(user_owner=request.user) for x in models.Deal.objects.filter(user_from=request.user)]
+    deals_in = [x.serialize(user_owner=request.user) for x in models.Deal.objects.filter(user_to=request.user)]
 
     d = {
         'outgoing': deals_out,
@@ -256,7 +256,7 @@ def user_deals(request):
 @csrf_exempt
 @auth_required
 def user_bookmarks(request):
-    bookmarks = Bookmark.objects.filter(user=request.user)
+    bookmarks = models.Bookmark.objects.filter(user=request.user)
     return JSONResponse.serialize(o=bookmarks, aas='venues', status=200)
 
 
@@ -269,8 +269,8 @@ def deal_info(request):
         return GameError('no_args', e.message)
 
     try:
-        deal = Deal.objects.get(id=deal_id)
-    except Deal.DoesNotExist:
+        deal = models.Deal.objects.get(id=deal_id)
+    except models.Deal.DoesNotExist:
         return GameError('no_deal')
 
     if request.user == deal.user_from or request.user == deal.user_to or deal.is_public:
@@ -290,8 +290,8 @@ def deal_new(request):
         return GameError('no_args', e.message)
 
     try:
-        venue = Venue.objects.get(venue_id=venue_id)
-    except Venue.DoesNotExist:
+        venue = models.Venue.objects.get(venue_id=venue_id)
+    except models.Venue.DoesNotExist:
         return GameError('no_venue')
     if venue.owner == request.user:
         dtype = TYPES[1][0]
@@ -302,12 +302,12 @@ def deal_new(request):
         dtype = TYPES[0][0]
         is_pub = False
 
-    deal = Deal.objects.filter(venue=venue_id, user_from=request.user, state=STATES[0][0]).exclude(dtype=[TYPES[1][0], TYPES[0][0]])
+    deal = models.Deal.objects.filter(venue=venue_id, user_from=request.user, state=STATES[0][0]).exclude(dtype=[TYPES[1][0], TYPES[0][0]])
     if deal:
         deal = deal.first()
         status = 204
     else:
-        deal = Deal.objects.create(venue=venue, user_from=request.user, user_to=venue.owner if not is_pub else None,
+        deal = models.Deal.objects.create(venue=venue, user_from=request.user, user_to=venue.owner if not is_pub else None,
                                    amount=amount, state=STATES[0][0], dtype=dtype, is_public=is_pub)
         status = 200
         request.user.buildings_count += 1
@@ -331,8 +331,8 @@ def deal_cancel(request):
         return GameError('no_args', e.message)
 
     try:
-        deal = Deal.objects.get(id=deal_id)
-    except Deal.DoesNotExist:
+        deal = models.Deal.objects.get(id=deal_id)
+    except models.Deal.DoesNotExist:
         return GameError('no_deal')
 
     if request.user == deal.user_from:
@@ -366,8 +366,8 @@ def deal_accept(request):
         return GameError('no_args', e.message)
 
     try:
-        deal = Deal.objects.get(id=deal_id)
-    except Deal.DoesNotExist:
+        deal = models.Deal.objects.get(id=deal_id)
+    except models.Deal.DoesNotExist:
         return GameError('no_deal')
 
     # if deal.state != STATES[0][0]:
@@ -443,10 +443,10 @@ def bookmark_new(request):
         return GameError('no_args', message_params=e.message)
 
     try:
-        obj = Venue.objects.get(venue_id=venue_id)
-    except Venue.DoesNotExist:
+        obj = models.Venue.objects.get(venue_id=venue_id)
+    except models.Venue.DoesNotExist:
         return GameError('wrong_args', 'venue_id')
-    obj = Bookmark.objects.get_or_create(user=request.user, venue=obj, is_autocreated=False)
+    obj = models.Bookmark.objects.get_or_create(user=request.user, venue=obj, is_autocreated=False)
     return JSONResponse.serialize(obj, aas='venue', status=200)
 
 
@@ -459,12 +459,12 @@ def bookmark_delete(request):
         return GameError('no_args', message_params=e.message)
 
     try:
-        venue = Venue.objects.get(venue_id=venue_id)
-    except Venue.DoesNotExist:
+        venue = models.Venue.objects.get(venue_id=venue_id)
+    except models.Venue.DoesNotExist:
         return GameError('no_venue')
     try:
-        obj = Bookmark.objects.filter(user=request.user, venue=venue)
-    except Bookmark.DoesNotExist:
+        obj = models.Bookmark.objects.filter(user=request.user, venue=venue)
+    except models.Bookmark.DoesNotExist:
         return GameError('no_bookmark')
     obj.delete()
     return JSONResponse.serialize(status=200)
@@ -503,5 +503,5 @@ def push_unreg(request):
 
 @csrf_exempt
 def test_image(request):
-    for u in User.objects.all():
+    for u in models.User.objects.all():
         AvatarUtils.generate(u)
