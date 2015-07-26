@@ -2,6 +2,8 @@ from django.contrib.auth.hashers import make_password, check_password
 from django.db import models
 import bisect
 from conf.settings_game import START_CASH_AMOUNT
+from conf.settings import STATIC_URL
+from conf.settings_local import SettingsLocal
 from .manager_user import UserManager
 
 EXP_MAP = [68, 295, 805, 1716, 3154, 5249, 8136, 11955, 16851, 22973, 30475,
@@ -55,6 +57,7 @@ class User(models.Model):
     # public
     experience_count = models.BigIntegerField(default=0)
     buildings_count = models.SmallIntegerField(default=0)
+    # TODO: drop field
     avatar = models.URLField()
     score = models.IntegerField(default=0)
     # private
@@ -66,7 +69,7 @@ class User(models.Model):
             "id": self.id,
             "username": self.name,
             "level": self.lvl,
-            "avatar": self.avatar,
+            "avatar": '{0}{1}{2}.png'.format(SettingsLocal.DOMAIN_RAW, STATIC_URL, self.id),
             "score": self.score,
             "objects_count": self.buildings_count,
             "max_objects": self.max_objects,
