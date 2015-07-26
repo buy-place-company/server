@@ -2,13 +2,13 @@ import hashlib
 from django.db import models
 from django.db.models import ForeignKey
 from subsystems.db.model_user import User
-from subsystems.db.model_venue import Venue as Ve
+from subsystems.db.models import Venue
 
 
 class Bookmark(models.Model):
     # system fields
     user = ForeignKey(User)
-    venue = ForeignKey(Ve)
+    venue = ForeignKey(Venue)
     push_check_sum = models.CharField(max_length=33)
     is_autocreated = models.BooleanField(default=True)
 

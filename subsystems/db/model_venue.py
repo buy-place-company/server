@@ -4,8 +4,7 @@ from datetime import timedelta, datetime
 import django.dispatch
 from django.db import models
 
-from .model_user import User
-from subsystems.db.model_bookmark import Bookmark
+from .models import User, Bookmark
 
 BASE_COST = 300
 BASE_INCOME = 100
