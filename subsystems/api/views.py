@@ -20,8 +20,7 @@ from subsystems.db.model_zone import Zone
 from subsystems.foursquare.api import FoursquareAPI
 from conf.settings_local import SettingsLocal
 from conf.secret import VK_APP_KEY, VK_APP_ID
-from conf.settings_game import ORDER_BY, ZONE_LNG_STEP, ZONE_LAT_STEP, ZONE_RETURN_WIDTH, ZONE_RETURN_HEIGHT, \
-    model_classes
+from conf.settings_game import ORDER_BY, ZONE_LNG_STEP, ZONE_LAT_STEP, ZONE_RETURN_WIDTH, ZONE_RETURN_HEIGHT
 
 logger = logging.getLogger(__name__)
 
@@ -436,28 +435,15 @@ def deal_accept(request):
 @auth_required
 def bookmark_new(request):
     try:
-        str_type, id = post_params(request, 'type', 'id')
+        id, = post_params(request, 'id')
     except SystemGameError as e:
         print(type(e))
         return GameError('no_args', message_params=e.message)
 
-    for m in model_classes:
-        if str(ContentType.objects.get_for_model(m)) == str_type:
-            dtype = m
-            break
-    else:
-        return GameError('wrong_args', message_params='type')
-
-    if dtype is Venue:
-        try:
-            obj = dtype.objects.get(venue_id=id)
-        except dtype.DoesNotExist:
-            return GameError('wrong_args', 'id')
-    else:
-        try:
-            obj = dtype.objects.get(id=id)
-        except dtype.DoesNotExist:
-            return GameError('wrong_args', 'id')
+    try:
+        obj = Venue.objects.get(venue_id=id)
+    except Venue.DoesNotExist:
+        return GameError('wrong_args', 'id')
     obj = Bookmark.objects.get_or_create(user=request.user, content_object=obj, is_autocreated=False)
     return JSONResponse.serialize(obj, aas='bookmark', status=200)
 

@@ -1,7 +1,7 @@
 # import hashlib
 # from django.contrib.contenttypes.models import ContentType
-from django.db.models.signals import pre_save
-from conf.settings_game import model_classes
+# from django.db.models.signals import pre_save
+# from conf.settings_game import model_classes
 # from subsystems.api.utils import JSONResponse
 # from subsystems.db.model_bookmark import Bookmark
 # from subsystems.gcm.models import Device
