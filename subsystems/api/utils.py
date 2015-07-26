@@ -9,7 +9,7 @@ import math
 from conf import secret
 from conf.settings import AVATAR_DIR
 from subsystems.api.errors import NoMoneyError, HasOwnerAlready, UHaveIt, UDontHaveIt, SystemGameError, \
-    MaxBuildingsCountReached, GameError
+    MaxBuildingsCountReached
 from subsystems.db import models
 from subsystems.db.model_venue import Bookmark
 from subsystems.foursquare.api import Foursquare
@@ -205,7 +205,7 @@ class VenueView:
         user.cash -= self.venue.npc_buy_price
         user.buildings_count += 1
         user.save()
-        Bookmark.objects.get_or_create(user=user, content_object=self.venue, is_autocreated=True)
+        Bookmark.objects.get_or_create(user=user, venue=self.venue, is_autocreated=True)
         self.venue.save()
 
     def sell(self, user):
