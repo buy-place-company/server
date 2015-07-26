@@ -35,21 +35,18 @@ class ZoneManager(models.Manager):
 
     def get_parent(self, lat, lng):
         lat, lng = self.__normalize_axis(lat, lng)
-        print("KLOG: lat = %.2f, lng = %.2f" % (lat, lng))
 
         try:
             return self.get(
                 parent_id=None,
-                sw_lat__lt=lat,
-                ne_lat__gte=lat,
-                sw_lng__lt=lng,
-                ne_lng__gte=lng
+                sw_lat__lte=lat,
+                ne_lat__gt=lat,
+                sw_lng__lte=lng,
+                ne_lng__gt=lng
             )
         except self.model.DoesNotExist:
             lat_min, lat_max = self.__normalize(lat, ZONE_LAT_STEP)
             lng_min, lng_max = self.__normalize(lng, ZONE_LNG_STEP)
-            print("KLOG: lat_min = %.2f, lat_max = %.2f" % (lat_min, lat_max))
-            print("KLOG: lng_min = %.2f, lng_max = %.2f" % (lat_min, lat_max))
             return self.create(
                 sw_lat=lat_min,
                 sw_lng=lng_min,
