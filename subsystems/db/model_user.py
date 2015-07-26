@@ -57,7 +57,6 @@ class User(models.Model):
             self.save(update_fields=["password"])
         return check_password(raw_password, self.password, setter)
 
-
     def serialize(self, is_public=True, **kwargs):
         user = kwargs.pop('user_owner', None)
         response = {
