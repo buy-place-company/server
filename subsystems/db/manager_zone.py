@@ -47,6 +47,8 @@ class ZoneManager(models.Manager):
         except self.model.DoesNotExist:
             lat_min, lat_max = self.__normalize(lat, ZONE_LAT_STEP)
             lng_min, lng_max = self.__normalize(lng, ZONE_LNG_STEP)
+            print("KLOG: lat_min = %.2f, lat_max = %.2f" % (lat_min, lat_max))
+            print("KLOG: lng_min = %.2f, lng_max = %.2f" % (lat_min, lat_max))
             return self.create(
                 sw_lat=lat_min,
                 sw_lng=lng_min,
