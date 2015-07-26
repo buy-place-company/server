@@ -102,11 +102,11 @@ class Venue(models.Model):
 
     @property
     def npc_buy_price(self):
-        return round(self.expense * 1.1)
+        return round(self.expense * 1)
 
     @property
     def npc_sell_price(self):
-        return round(self.expense * 0.9)
+        return round(self.expense * 0.5)
 
     @property
     def expense(self):
