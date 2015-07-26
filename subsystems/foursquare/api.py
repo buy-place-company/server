@@ -32,7 +32,6 @@ def add_to_list(queue):
             except Venue.DoesNotExist:
                 # TODO: потери зданий?
                 print("Exeption " + venue)
-                continue
             try:
                 FoursquareAPI.self.client.lists.additem(list_id=task.list_id, params={'venueId': venue})
                 time.sleep(0.5)
@@ -109,12 +108,12 @@ class FoursquareAPI:
             FoursquareAPI.demon = mp.Thread(target=add_to_list, args=(queue,))
             print(FoursquareAPI.demon.start())
 
-        FoursquareAPI.queue.put(Task([x['id'] for x in venues], zone.list_id))
-
         for venue in venues:
             dbvenue = FoursquareAPI.venue_from_item(venue, venue['id'])
             dbvenue.list_id = zone.list_id
             dbvenue.save()
+
+        FoursquareAPI.queue.put(Task([x['id'] for x in venues], zone.list_id))
         return zone
 
     @staticmethod

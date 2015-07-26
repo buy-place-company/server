@@ -247,9 +247,26 @@ def auth_email(request):
 @csrf_exempt
 @auth_required
 def user_deals(request):
-    deals_out = [x.serialize(user_owner=request.user) for x in Deal.objects.filter(user_from=request.user)]
-    deals_in = [x.serialize(user_owner=request.user) for x in Deal.objects.filter(user_to=request.user)]
-    deals_in.append([x.serialize(user_owner=request.user) for x in Deal.objects.filter(user_to=None)])
+    try:
+        filter_type, filter_value = get_params(request, 'filter_type', 'filter_value')
+    except SystemGameError:
+        filter_value = None
+        filter_type = None
+
+    if filter_type not in ['state', 'type']:
+        return GameError('wrong_args', 'type')
+    if filter_value not in STATES:
+        return GameError('wrong_args', 'filter')
+    deals_out = Deal.objects.filter(user_from=request.user)
+    deals_in = Deal.objects.filter(user_to=request.user)
+    deals_public = Deal.objects.filter(user_to=None).exclude(user_from=request.user)
+    if filter_value and filter_type:
+        deals_out = deals_out.filter(**{filter_type: filter_value})
+        deals_in = deals_in.filter(**{filter_type: filter_value})
+        deals_public = deals_in.filter(**{filter_type: filter_value})
+    deals_out = [x.serialize(user_owner=request.user) for x in deals_out]
+    deals_in = [x.serialize(user_owner=request.user) for x in deals_in]
+    deals_in += [x.serialize(user_owner=request.user) for x in deals_public]
 
     d = {
         'outgoing': deals_out,
@@ -504,7 +521,7 @@ def push_reg(request):
     try:
         Device.objects.create(reg_id=reg_id, user=request.user)
     except Exception as e:
-        logger.warning(e)
+        logger.info(e)
     return JSONResponse.serialize(status=200)
 
 
@@ -520,7 +537,7 @@ def push_unreg(request):
         device = Device.objects.get(reg_id=reg_id)
         device.clear()
     except Exception as e:
-        logger.warning(e)
+        logger.info(e)
     return JSONResponse.serialize(status=200)
 
 
