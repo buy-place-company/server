@@ -150,7 +150,7 @@ class Venue(models.Model):
 class Bookmark(models.Model):
     # system fields
     user = ForeignKey(User)
-    venue = ForeignKey(Venue)
+    venue = ForeignKey(Venue, to_field='venue_id')
     push_check_sum = models.CharField(max_length=33)
     is_autocreated = models.BooleanField(default=True)
 
