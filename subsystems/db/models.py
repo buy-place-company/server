@@ -5,21 +5,9 @@ from .model_bookmark import Bookmark
 from .model_deal import Deal
 
 
-class Venue:
-    pass
-
-
-class User:
-    pass
-
-
-class Zone:
-    pass
-
-
-class Deal:
-    pass
-
-
-class Bookmark:
-    pass
+class DataBase:
+    Bookmark = Bookmark
+    Deal = Deal
+    Zone = Zone
+    Venue = Venue
+    User = User
