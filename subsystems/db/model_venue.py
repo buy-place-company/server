@@ -4,7 +4,7 @@ from datetime import timedelta, datetime
 import django.dispatch
 from django.db import models
 
-from .models import User
+from subsystems.db import models as mo
 
 BASE_COST = 300
 BASE_INCOME = 100
@@ -36,7 +36,7 @@ class Venue(models.Model):
     tip_count = models.IntegerField(default=0)
     category = models.CharField(max_length=255)
     lvl = models.IntegerField(default=0)
-    owner = models.ForeignKey(User, null=True, blank=True)
+    owner = models.ForeignKey(mo.User, null=True, blank=True)
     lat = models.FloatField(default=0)
     lng = models.FloatField(default=0)
 
@@ -59,8 +59,7 @@ class Venue(models.Model):
     # General
     def serialize(self, is_public=True, **kwargs):
         user = kwargs.pop('user_owner', None)
-        from subsystems.db.models import Bookmark
-        is_favorite = Bookmark.objects.filter(user=user, venue=self)
+        is_favorite = mo.Bookmark.objects.filter(user=user, venue=self)
         response = {
             "id": self.venue_id,
             "stats": {
