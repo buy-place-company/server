@@ -5,17 +5,14 @@ import urllib.request
 from django.views.decorators.csrf import csrf_exempt
 from django.utils.timezone import now
 from subsystems.api.decor import auth_required
-from subsystems.db.model_bookmark import Bookmark
 from subsystems.gcm.models import Device
 
 from subsystems._auth import logout
 from subsystems.api.errors import GameError, NoMoneyError, HasOwnerAlready, UHaveIt, UDontHaveIt, SystemGameError, \
     InDeal, LogWarning
 from subsystems.api.utils import JSONResponse, VenueView, get_params, post_params, GPSUtils, AvatarUtils
-from subsystems.db.model_deal import Deal, STATES, TYPES
-from subsystems.db.model_user import User
-from subsystems.db.model_venue import Venue
-from subsystems.db.model_zone import Zone
+from subsystems.db.model_deal import STATES, TYPES
+from subsystems.db.models import Deal, Venue, Zone, Bookmark
 from subsystems.foursquare.api import FoursquareAPI
 from conf.settings_local import SettingsLocal
 from conf.secret import VK_APP_KEY, VK_APP_ID

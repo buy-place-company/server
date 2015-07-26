@@ -1,8 +1,7 @@
 import hashlib
 from django.db import models
 from django.db.models import ForeignKey
-from subsystems.db.model_user import User
-from subsystems.db.models import Venue
+from subsystems.db.models import Venue, User
 
 
 class Bookmark(models.Model):
