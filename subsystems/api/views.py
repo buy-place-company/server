@@ -432,15 +432,14 @@ def deal_accept(request):
 @auth_required
 def bookmark_new(request):
     try:
-        id, = post_params(request, 'id')
+        venue_id, = post_params(request, 'venue_id')
     except SystemGameError as e:
-        print(type(e))
         return GameError('no_args', message_params=e.message)
 
     try:
-        obj = Venue.objects.get(venue_id=id)
+        obj = Venue.objects.get(venue_id=venue_id)
     except Venue.DoesNotExist:
-        return GameError('wrong_args', 'id')
+        return GameError('wrong_args', 'venue_id')
     obj = Bookmark.objects.get_or_create(user=request.user, content_object=obj, is_autocreated=False)
     return JSONResponse.serialize(obj, aas='venue', status=200)
 
@@ -449,11 +448,11 @@ def bookmark_new(request):
 @auth_required
 def bookmark_delete(request):
     try:
-        id, = post_params(request, 'id')
+        venue_id, = post_params(request, 'venue_id')
     except SystemGameError as e:
         return GameError('no_args', message_params=e.message)
     try:
-        obj = Bookmark.objects.get(pk=id)
+        obj = Bookmark.objects.get(venue_id=venue_id)
     except Bookmark.DoesNotExist:
         return GameError('no_bookmark')
     obj.delete()
