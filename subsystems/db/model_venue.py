@@ -156,12 +156,12 @@ class Bookmark(models.Model):
 
     def save(self, *args, **kwargs):
         m = hashlib.md5()
-        m.update(self.content_object.check_sum.encode('utf-8'))
+        m.update(self.venue.check_sum.encode('utf-8'))
         self.push_check_sum = m.hexdigest()
         super(Bookmark, self).save(*args, **kwargs)
 
     def serialize(self, user_owner=None, **kwargs):
         return {
             'user': self.user.serialize(user_owner=user_owner),
-            str(self.content_type): self.content_object.serialize(user_owner=user_owner, **kwargs),
+            'venue': self.venue.serialize(user_owner=user_owner, **kwargs),
         }
