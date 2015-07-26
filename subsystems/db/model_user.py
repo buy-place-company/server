@@ -94,5 +94,4 @@ class User(models.Model):
         return score
 
     def has_place(self):
-        print(self.max_objects, self.buildings_count)
-        return self.max_objects == self.buildings_count
+        return self.max_objects > self.buildings_count
