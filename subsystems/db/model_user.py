@@ -5,7 +5,6 @@ from conf.settings_game import START_CASH_AMOUNT
 from conf.settings import STATIC_URL
 from conf.settings_local import SettingsLocal
 from .manager_user import UserManager
-from subsystems.db.model_venue import Venue
 
 EXP_MAP = [68, 295, 805, 1716, 3154, 5249, 8136, 11955, 16851, 22973, 30475,
            39516, 50261, 62876, 77537, 94421, 113712, 135596, 160266, 84495,
@@ -94,6 +93,7 @@ class User(models.Model):
 
     @property
     def score(self):
+        from subsystems.db.model_venue import Venue
         score = 0
         for obj in Venue.objects.filter(owner=self):
             score += obj.expense
