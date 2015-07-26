@@ -1,3 +1,6 @@
+from subsystems.db.model_deal import Deal
+from subsystems.db.model_venue import Venue
+
 START_CASH_AMOUNT = 500000000
 DEFAULT_CATEGORIES = "4d4b7104d754a06370d81259,4d4b7105d754a06372d81259,4d4b7105d754a06374d81259," \
                      "4d4b7105d754a06376d81259,4bf58dd8d48988d124941735,4bf58dd8d48988d104941735," \
@@ -21,3 +24,5 @@ ZONE_UPDATE_DELTA_HOURS = 23
 DIV_ZONE_DAYS_COUNT = 7
 DIV_ZONE_AVG_COUNT = 100
 DIV_ZONE_MIN_SIZE = 0.01
+
+model_classes = [Venue, Deal]

@@ -31,8 +31,16 @@ class Deal(models.Model):
     dtype = models.CharField(help_text='Тип предложения', max_length=10, choices=TYPES)
     is_public = models.BooleanField(help_text='Доступна всем?', default=False)
 
+    @property
+    def push_id(self):
+        return self.pk
+
+    @property
+    def check_sum(self):
+        return ''.join([str(self.user_to.id if self.user_to else ''), str(self.user_from.id),
+                        str(self.amount), str(self.get_state_display()), str(self.date_expire)])
+
     def serialize(self, user_owner=None, **kwargs):
-        print(self.user_to)
         return {
             'id': self.pk,
             'venue': self.venue.serialize(user_owner=user_owner),

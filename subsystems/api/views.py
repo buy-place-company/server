@@ -1,10 +1,12 @@
 import json
 import logging
 import urllib.request
+from django.contrib.contenttypes.models import ContentType
 
 from django.views.decorators.csrf import csrf_exempt
 from django.utils.timezone import now
 from subsystems.api.decor import auth_required
+from subsystems.db.model_bookmark import Bookmark
 from subsystems.gcm.models import Device
 
 from subsystems._auth import logout
@@ -18,7 +20,8 @@ from subsystems.db.model_zone import Zone
 from subsystems.foursquare.api import FoursquareAPI
 from conf.settings_local import SettingsLocal
 from conf.secret import VK_APP_KEY, VK_APP_ID
-from conf.settings_game import ORDER_BY, ZONE_LNG_STEP, ZONE_LAT_STEP, ZONE_RETURN_WIDTH, ZONE_RETURN_HEIGHT
+from conf.settings_game import ORDER_BY, ZONE_LNG_STEP, ZONE_LAT_STEP, ZONE_RETURN_WIDTH, ZONE_RETURN_HEIGHT, \
+    model_classes
 
 logger = logging.getLogger(__name__)
 
@@ -255,6 +258,13 @@ def user_deals(request):
 
 @csrf_exempt
 @auth_required
+def user_bookmarks(request):
+    bookmarks = Bookmark.objects.filter(user=request.user)
+    return JSONResponse.serialize(o=bookmarks, aas='bookmarks', status=200)
+
+
+@csrf_exempt
+@auth_required
 def deal_info(request):
     try:
         deal_id, = get_params(request, 'deal_id')
@@ -297,18 +307,8 @@ def deal_new(request):
     deal = Deal.objects.create(venue=venue, user_from=request.user, user_to=venue.owner if not is_pub else None,
                                amount=amount, state=STATES[0][0], dtype=dtype, is_public=is_pub)
 
-    resp, push = JSONResponse.serialize_with_push(
-        'deal_new',
-        deal,
-        aas='deal',
-        status=200,
-        user_owner=request.user
-    )
-
-    devices = Device.objects.filter(user=venue.owner)
-    devices.send_message(push)
-
-    return resp
+    Bookmark.objects.create(user=request.user, content_object=deal, is_autocreated=True)
+    return JSONResponse.serialize(deal, aas='deal', status=200, user_owner=request.user)
 
 
 @csrf_exempt
@@ -326,31 +326,14 @@ def deal_cancel(request):
 
     if request.user == deal.user_from:
         deal.state = STATES[3][0]
-        push_to_user = deal.user_to
     elif request.user == deal.user_to:
         deal.state = STATES[2][0]
-        push_to_user = deal.user_from
     elif not deal.is_public:
         return GameError('no_deal')
     else:
         return GameError('no_perm')
 
-    deal.date_expire = now()
-    deal.save(update_fields=['date_expire', 'state'])
-
-    resp, push = JSONResponse.serialize_with_push(
-        'deal_cancel',
-        deal,
-        aas='deal',
-        status=200,
-        user_owner=request.user
-    )
-
-    if push_to_user is not None:
-        devices = Device.objects.filter(user=push_to_user)
-        devices.send_message(push)
-
-    return resp
+    return JSONResponse.serialize(deal, aas='deal', status=200, user_owner=request.user)
 
 
 @csrf_exempt
@@ -416,25 +399,52 @@ def deal_accept(request):
     else:
         return GameError('no_perm')
 
-    if request.user == deal.user_from:
-        push_to_user = deal.user_to
-    elif request.user == deal.user_to:
-        push_to_user = deal.user_from
+    return JSONResponse.serialize(deal, aas='deal', status=200, user_owner=request.user)
+
+
+@csrf_exempt
+@auth_required
+def bookmark_new(request):
+    try:
+        str_type, id = post_params(request, 'type', 'id')
+    except SystemGameError as e:
+        print(type(e))
+        return GameError('no_args', message_params=e.message)
+
+    for m in model_classes:
+        if str(ContentType.objects.get_for_model(m)) == str_type:
+            dtype = m
+            break
     else:
-        push_to_user = None
+        return GameError('wrong_args', message_params='type')
 
-    resp, push = JSONResponse.serialize_with_push(
-        'deal_accept',
-        deal,
-        aas='deal',
-        status=200,
-        user_owner=request.user
-    )
-    if push_to_user is not None:
-        devices = Device.objects.filter(user=push_to_user)
-        devices.send_message(push)
+    if dtype is Venue:
+        try:
+            obj = dtype.objects.get(venue_id=id)
+        except dtype.DoesNotExist:
+            return GameError('wrong_args', 'id')
+    else:
+        try:
+            obj = dtype.objects.get(id=id)
+        except dtype.DoesNotExist:
+            return GameError('wrong_args', 'id')
+    obj = Bookmark.objects.get_or_create(user=request.user, content_object=obj, is_autocreated=False)
+    return JSONResponse.serialize(obj, aas='bookmark', status=200)
 
-    return resp
+
+@csrf_exempt
+@auth_required
+def bookmark_delete(request):
+    try:
+        id, = post_params(request, 'id')
+    except SystemGameError as e:
+        return GameError('no_args', message_params=e.message)
+    try:
+        obj = Bookmark.objects.get(pk=id)
+    except Bookmark.DoesNotExist:
+        return GameError('no_bookmark')
+    obj.delete()
+    return JSONResponse.serialize(status=200)
 
 
 @csrf_exempt
@@ -443,7 +453,7 @@ def push_reg(request):
     try:
         reg_id, = post_params(request, 'reg_id')
     except SystemGameError as e:
-        return GameError('no_args', e.message)
+        return GameError('no_args', message_params=e.message)
 
     Device.objects.create(reg_id=reg_id, user=request.user)
     return JSONResponse.serialize(status=200)
@@ -455,7 +465,7 @@ def push_unreg(request):
     try:
         reg_id, = post_params(request, 'reg_id')
     except SystemGameError as e:
-        return GameError('no_args', e.message)
+        return GameError('no_args', message_params=e.message)
 
     device = Device.objects.get(reg_id=reg_id)
     device.clear()

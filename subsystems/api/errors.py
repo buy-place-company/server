@@ -10,6 +10,7 @@ ERRORS = {
     'no_args': {'status': 101, 'message': '[SYS] Not enough args: %s'},
     'wrong_args': {'status': 101, 'message': '[SYS] Wrong args: %s'},
     'no_deal': {'status': 403, 'message': '[SYS] No such deal'},
+    'no_bookmark': {'status': 403, 'message': '[SYS] No such bookmark'},
 
     # Partners errors
     'VK_no_auth': {'status': 105, 'message': '[VK] HTTP Error 401: Unauthorized'},

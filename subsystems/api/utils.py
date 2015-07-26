@@ -7,6 +7,7 @@ import math
 
 from conf import secret
 from subsystems.api.errors import NoMoneyError, HasOwnerAlready, UHaveIt, UDontHaveIt, SystemGameError
+from subsystems.db.model_bookmark import Bookmark
 from subsystems.db.model_venue import Venue
 from subsystems.db.model_zone import Zone
 from subsystems.foursquare.api import Foursquare
@@ -103,6 +104,15 @@ class JSONResponse:
             resp_dict.pop('status')
         return resp_http, resp_dict
 
+    @staticmethod
+    def serialize_push(push_type, o=None, **kwargs):
+        kwargs['return_type'] = JSONResponse.RETURN_TYPE_DICT
+        resp_dict = JSONResponse.serialize(o, **kwargs)
+        resp_dict.update({'push_type': push_type})
+        if resp_dict['status'] == 200:
+            resp_dict.pop('status')
+        return resp_dict
+
 
 class ZoneView:
     def __init__(self, sw_lat, sw_lng, ne_lat, ne_lng, list_id=None):
@@ -175,6 +185,7 @@ class VenueView:
         user.score += self.venue.expense
         user.buildings_count += 1
         user.save()
+        Bookmark.objects.get_or_create(user=user, content_object=self.venue, is_autocreated=True)
         self.venue.save()
 
     def sell(self, user):
