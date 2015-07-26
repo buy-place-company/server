@@ -311,7 +311,8 @@ def deal_new(request):
     resp, push = JSONResponse.serialize_with_push('deal_new', deal, aas='deal', status=status, user_owner=request.user)
 
     if deal.user_to is not None:
-        Device.objects.filter(user=deal.user_to).send_message(push)
+        msg = Device.objects.filter(user=deal.user_to).send_message(push)
+        logger.info("Where: deal_new\n" + str(msg))
 
     return resp
 
@@ -348,7 +349,8 @@ def deal_cancel(request):
     resp, push = JSONResponse.serialize_with_push('deal_cancel', deal, aas='deal', status=200, user_owner=request.user)
 
     if deal.user_to is not None:
-        Device.objects.filter(user=push_to_user).send_message(push)
+        msg = Device.objects.filter(user=push_to_user).send_message(push)
+        logger.info("Where: deal_cancel\n" + str(msg))
 
     return resp
 
@@ -426,7 +428,8 @@ def deal_accept(request):
     resp, push = JSONResponse.serialize_with_push('deal_accept', deal, aas='deal', status=200, user_owner=request.user)
 
     if deal.user_to is not None:
-        Device.objects.filter(user=push_to_user).send_message(push)
+        msg = Device.objects.filter(user=push_to_user).send_message(push)
+        logger.info("Where: deal_accept\n" + str(msg))
 
     return resp
 
