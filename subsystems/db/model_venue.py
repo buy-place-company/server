@@ -147,7 +147,7 @@ class Venue(models.Model):
         super(Venue, self).save(*args, **kwargs)
 
 
-class Bookmark(mo.Model):
+class Bookmark(models.Model):
     # system fields
     user = ForeignKey(User)
     venue = ForeignKey(Venue)
