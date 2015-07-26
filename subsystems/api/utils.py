@@ -9,9 +9,7 @@ from conf import secret
 from conf.settings import AVATAR_DIR
 from subsystems.api.errors import NoMoneyError, HasOwnerAlready, UHaveIt, UDontHaveIt, SystemGameError, \
     MaxBuildingsCountReached
-from subsystems.db.model_bookmark import Bookmark
-from subsystems.db.model_venue import Venue
-from subsystems.db.model_zone import Zone
+from subsystems.db.models import Bookmark, Venue, Zone
 from subsystems.foursquare.api import Foursquare
 from conf.settings_game import DEFAULT_CATEGORIES
 from subsystems.foursquare.utils.foursquare_api import ServerError
