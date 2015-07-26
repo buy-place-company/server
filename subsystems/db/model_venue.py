@@ -12,8 +12,6 @@ BASE_COST = 300
 BASE_INCOME = 100
 TIME_DELTA = 30
 
-venue_push = django.dispatch.Signal(providing_args=["fields"])
-
 
 class VenueManager(models.Manager):
     def get_queryset(self):
