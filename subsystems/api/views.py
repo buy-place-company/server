@@ -419,25 +419,9 @@ def deal_accept(request):
             deal.user_from.save()
         elif deal.dtype == TYPES[1][0]:
             if request.user.cash < deal.amount:
-                return PushUtils.push_with_error(
-                    'deal_no_money',
-                    deal.user_from,
-                    GameError('no_money'),
-                    deal,
-                    aas='deal',
-                    status=200,
-                    user_owner=request.user
-                )
+                return GameError('no_money')
             if not request.user.has_place():
-                return PushUtils.push_with_error(
-                    'deal_no_place',
-                    deal.user_from,
-                    GameError('no_place'),
-                    deal,
-                    aas='deal',
-                    status=200,
-                    user_owner=request.user
-                )
+                return GameError('no_place')
             deal.user_to = request.user
             deal.user_from.cash += deal.amount
             deal.user_from.buildings_count -= 1
