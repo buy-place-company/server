@@ -90,7 +90,7 @@ class Venue(models.Model):
 
     @property
     def max_loot(self):
-        return round(3 * self.income * (1.1 ** self.lvl))
+        return self.income * (24 + self.lvl ** 1.5)
 
     @property
     def _base_cost(self):
