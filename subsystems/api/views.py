@@ -468,11 +468,12 @@ def bookmark_delete(request):
     except Venue.DoesNotExist:
         return GameError('no_venue')
     try:
-        obj = Bookmark.objects.filter(user=request.user, venue=venue)
+        obj = Bookmark.objects.get(user=request.user, venue=venue)
     except Bookmark.DoesNotExist:
         return GameError('no_bookmark')
+    venue = obj.venue
     obj.delete()
-    return JSONResponse.serialize(status=200)
+    return JSONResponse.serialize(venue, aas='venue', status=200)
 
 
 @csrf_exempt
