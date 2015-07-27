@@ -4,7 +4,6 @@ import hashlib
 from django.db.models import ForeignKey
 
 from django.db import models
-import math
 from subsystems.db.model_user import User
 
 
@@ -126,7 +125,7 @@ class Venue(models.Model):
     @property
     def consumption(self):
         return round(BASE_INCOME * 10 + 0.1 * self.income)
-        #return round(BASE_INCOME * (1.1 ** (self.lvl - 1)) - BASE_INCOME / 2)
+        # return round(BASE_INCOME * (1.1 ** (self.lvl - 1)) - BASE_INCOME / 2)
 
     def update(self):
         update_time = self.last_update + timedelta(seconds=TIME_DELTA).total_seconds()

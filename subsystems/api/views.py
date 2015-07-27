@@ -253,11 +253,12 @@ def user_deals(request):
 
     if filter_type not in ['state', 'type']:
         return GameError('wrong_args', 'type')
-    if filter_value not in STATES:
+    if filter_value not in [x[0] for x in STATES]:
         return GameError('wrong_args', 'filter')
     deals_out = Deal.objects.filter(user_from=request.user)
     deals_in = Deal.objects.filter(user_to=request.user)
     deals_public = Deal.objects.filter(user_to=None).exclude(user_from=request.user)
+    print(deals_in)
     if filter_value and filter_type:
         deals_out = deals_out.filter(**{filter_type: filter_value})
         deals_in = deals_in.filter(**{filter_type: filter_value})
