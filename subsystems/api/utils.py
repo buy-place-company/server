@@ -236,8 +236,11 @@ class VenueView:
         if self.venue.owner != user:
             raise UDontHaveIt()
 
+        print(self.venue.loot)
         self.venue.update()
+        print(user.cash)
         user.cash += self.venue.loot
+        print(user.cash)
         self.venue.loot = 0
         user.save()
         self.venue.save()
