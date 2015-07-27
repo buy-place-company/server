@@ -205,6 +205,7 @@ class VenueView:
         self.venue.owner = user
         user.cash -= self.venue.npc_buy_price
         user.buildings_count += 1
+        self.venue.last_update = datetime.datetime.now().timestamp()
         self.venue.save()
         user.save()
 
