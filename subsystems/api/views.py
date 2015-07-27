@@ -1,7 +1,6 @@
 import json
 import logging
 import urllib.request
-from django.db.models import Sum, F
 
 from django.views.decorators.csrf import csrf_exempt
 from django.utils.timezone import now
@@ -249,8 +248,8 @@ def user_deals(request):
     try:
         filter_type, filter_value = get_params(request, 'filter_type', 'filter_value')
     except SystemGameError:
-        filter_value = None
-        filter_type = None
+        filter_value = 'incomplete'
+        filter_type = 'state'
 
     if filter_type not in ['state', 'type']:
         return GameError('wrong_args', 'type')
