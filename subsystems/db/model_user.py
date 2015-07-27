@@ -82,7 +82,7 @@ class User(models.Model):
 
     @property
     def max_objects(self):
-        return 2 + int(self.lvl)
+        return 2 + int(self.lvl) * 2
 
     @property
     def score(self):
