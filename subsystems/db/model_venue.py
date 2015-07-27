@@ -130,8 +130,8 @@ class Venue(models.Model):
     def update(self):
         update_time = self.last_update + timedelta(seconds=TIME_DELTA).total_seconds()
         now = datetime.now().timestamp()
-        div = abs(now - update_time)
-        if self.owner:
+        div = now - update_time
+        if self.owner and div > 0:
             if self.owner.cash + self.income > self.consumption:
                 inc = round((self.income - self.consumption) % 3600 * div)
                 if inc > 0:
