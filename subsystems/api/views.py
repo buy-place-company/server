@@ -140,11 +140,8 @@ def user_venues(request):
 @auth_required
 def user_rating(request):
     offset = int(request.GET.get('offset', 0))
-    order_by = ORDER_BY.get(request.GET.get('param', 'score'), ORDER_BY['score'])
+    # order_by = ORDER_BY.get(request.GET.get('param', 'score'), ORDER_BY['score'])
     limit = int(request.GET.get('limit', 20))
-
-    if order_by is None:
-        order_by = '_score'
 
     users = User.objects.extra(select={'sum': '0.8*cash+_score'}).order_by('-sum')[offset:offset + limit]
     return JSONResponse.serialize(users, aas='users', status=200, user={'user': request.user.serialize(is_public=False)},
