@@ -87,11 +87,12 @@ class User(models.Model):
     @property
     def score(self):
         from subsystems.db.model_venue import Venue
-        score = round(self.cash * 0.8)
+        score = 0
         for obj in Venue.objects.filter(owner=self):
             score += obj.expense
         self._score = score
-        return score
+        self.save()
+        return score + round(self.cash * 0.8)
 
     def has_place(self):
         return self.max_objects > self.buildings_count

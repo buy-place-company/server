@@ -1,6 +1,7 @@
 import json
 import logging
 import urllib.request
+from django.db.models import Sum
 
 from django.views.decorators.csrf import csrf_exempt
 from django.utils.timezone import now
@@ -145,7 +146,7 @@ def user_rating(request):
     if order_by is None:
         order_by = '_score'
 
-    users = User.objects.all().order_by("-" + order_by)[offset:offset + limit]
+    users = User.objects.annotate(total=Sum('cash__score')).order_by('total')[offset:offset + limit]
     return JSONResponse.serialize(users, aas='users', status=200, user={'user': request.user.serialize(is_public=False)},
                                   user_owner=request.user)
 
