@@ -257,14 +257,14 @@ def user_deals(request):
         return GameError('wrong_args', 'filter')
     deals_out = Deal.objects.filter(user_from=request.user)
     deals_in = Deal.objects.filter(user_to=request.user)
-    deals_public = Deal.objects.filter(user_to=None).exclude(user_from=request.user)
+    # deals_public = Deal.objects.filter(user_to=None).exclude(user_from=request.user)
     if filter_value and filter_type:
         deals_out = deals_out.filter(**{filter_type: filter_value})
         deals_in = deals_in.filter(**{filter_type: filter_value})
-        deals_public = deals_in.filter(**{filter_type: filter_value})
+        # deals_public = deals_in.filter(**{filter_type: filter_value})
     deals_out = [x.serialize(user_owner=request.user) for x in deals_out]
     deals_in = [x.serialize(user_owner=request.user) for x in deals_in]
-    deals_in += [x.serialize(user_owner=request.user) for x in deals_public]
+    # deals_in += [x.serialize(user_owner=request.user) for x in deals_public]
 
     d = {
         'outgoing': deals_out,
