@@ -270,7 +270,7 @@ def user_deals(request):
         'outgoing': deals_out,
         'incoming': deals_in,
     }
-
+    print(d)
     return JSONResponse.serialize(o=d, aas='deals', status=200)
 
 

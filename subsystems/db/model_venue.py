@@ -134,7 +134,6 @@ class Venue(models.Model):
         if self.owner:
             if self.owner.cash + self.income > self.consumption:
                 inc = round((self.income - self.consumption) % 3600 * div)
-                print({"Income": inc})
                 if inc > 0:
                     if self.max_loot >= self.loot + inc:
                         self.loot += inc
