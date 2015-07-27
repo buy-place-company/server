@@ -238,11 +238,11 @@ class VenueView:
 
         print(self.venue.loot)
         self.venue.update()
-        print(user.cash)
-        user.cash += self.venue.loot
-        print(user.cash)
+        print(self.venue.owner.cash)
+        self.venue.owner.cash += self.venue.loot
+        print(self.venue.owner.cash)
         self.venue.loot = 0
-        user.save()
+        self.venue.owner.save()
         self.venue.save()
 
 
