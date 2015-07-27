@@ -4,6 +4,7 @@ import hashlib
 from django.db.models import ForeignKey
 
 from django.db import models
+import math
 from subsystems.db.model_user import User
 
 
@@ -97,10 +98,6 @@ class Venue(models.Model):
         return ((self.checkin_count * 5) ** 0.5) * 100 + self.user_count * 1000
 
     @property
-    def income(self):
-        return round(self._base_cost ** 0.6) * (1 + 1.4 ** self.lvl)
-
-    @property
     def npc_buy_price(self):
         return round(self.expense * 1.1)
 
@@ -123,8 +120,13 @@ class Venue(models.Model):
         return round((self._base_cost ** 0.8) * (1.4 ** (lvl - 1)))
 
     @property
+    def income(self):
+        return round(self._base_cost ** 0.6) * (1 + 1.4 ** self.lvl)
+
+    @property
     def consumption(self):
-        return round(BASE_INCOME * (1.1 ** (self.lvl - 1)) - BASE_INCOME / 2)
+        return round(BASE_INCOME * 10 + 0.1 * self.income)
+        #return round(BASE_INCOME * (1.1 ** (self.lvl - 1)) - BASE_INCOME / 2)
 
     def update(self):
         update_time = self.last_update + timedelta(seconds=TIME_DELTA).total_seconds()
