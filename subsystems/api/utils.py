@@ -11,7 +11,7 @@ from conf.settings import AVATAR_DIR
 from subsystems.api.errors import NoMoneyError, HasOwnerAlready, UHaveIt, UDontHaveIt, SystemGameError, \
     MaxBuildingsCountReached, InDeal
 from subsystems.db import models
-from subsystems.db.model_deal import Deal
+from subsystems.db.model_deal import Deal, STATES
 from subsystems.db.model_venue import Bookmark
 from subsystems.foursquare.api import Foursquare
 from conf.settings_game import DEFAULT_CATEGORIES
@@ -212,7 +212,7 @@ class VenueView:
         if self.venue.owner != user:
             raise UDontHaveIt()
 
-        if Deal.objects.filter(venue=self.venue):
+        if Deal.objects.filter(venue=self.venue, state=STATES[0]):
             raise InDeal()
         self.venue.owner = None
         user.cash += self.venue.npc_sell_price

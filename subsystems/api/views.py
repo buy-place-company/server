@@ -258,7 +258,6 @@ def user_deals(request):
     deals_out = Deal.objects.filter(user_from=request.user)
     deals_in = Deal.objects.filter(user_to=request.user)
     deals_public = Deal.objects.filter(user_to=None).exclude(user_from=request.user)
-    print(deals_in)
     if filter_value and filter_type:
         deals_out = deals_out.filter(**{filter_type: filter_value})
         deals_in = deals_in.filter(**{filter_type: filter_value})
@@ -271,7 +270,7 @@ def user_deals(request):
         'outgoing': deals_out,
         'incoming': deals_in,
     }
-
+    print(d)
     return JSONResponse.serialize(o=d, aas='deals', status=200)
 
 

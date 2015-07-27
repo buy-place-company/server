@@ -9,7 +9,7 @@ from subsystems.db.model_user import User
 
 BASE_COST = 300
 BASE_INCOME = 100
-TIME_DELTA = 30
+TIME_DELTA = 3
 
 
 class VenueManager(models.Manager):
@@ -131,6 +131,7 @@ class Venue(models.Model):
         update_time = self.last_update + timedelta(seconds=TIME_DELTA).total_seconds()
         now = datetime.now().timestamp()
         div = now - update_time
+        print(div)
         if self.owner:
             if self.owner.cash + self.income > self.consumption:
                 inc = round((self.income - self.consumption) % 3600 * div)
